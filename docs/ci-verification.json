@@ -1,0 +1,22 @@
+{
+  "verified_date": "2026-11-18",
+  "repository": "https://github.com/tellmai/CommerceAI",
+  "tested_commit": "f316b8203d95b48ec42e6dfc0217863c90aa6929",
+  "run_id": 44221087338,
+  "run_url": "https://github.com/tellmai/CommerceAI/actions/runs/44221087338",
+  "backend_tests": 42,
+  "browser_tests": 3,
+  "jobs": [
+    {
+      "name": "compose",
+      "id": 134522813866,
+      "conclusion": "success"
+    },
+    {
+      "name": "checks",
+      "id": 134522814165,
+      "conclusion": "success"
+    }
+  ],
+  "scope": "GitHub-hosted Linux: code, contracts, static build, browser, four Compose services and independent backup restore. This does not measure Docker resources on the user's computer."
+}
