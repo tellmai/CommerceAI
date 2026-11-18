@@ -4826,6 +4826,430 @@ paths:
       security:
       - sessionCookie: []
         csrfHeader: []
+  /api/v1/market/connection:
+    get:
+      tags:
+      - 联网选品
+      summary: Status
+      operationId: status_api_v1_market_connection_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+      - sessionCookie: []
+    put:
+      tags:
+      - 联网选品
+      summary: Configure
+      operationId: configure_api_v1_market_connection_put
+      parameters:
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConnectionInput'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/market/connection/test:
+    post:
+      tags:
+      - 联网选品
+      summary: Test Connection
+      operationId: test_connection_api_v1_market_connection_test_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConnectionTest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/market/runs:
+    post:
+      tags:
+      - 联网选品
+      summary: Search
+      operationId: search_api_v1_market_runs_post
+      parameters:
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchInput'
+      responses:
+        '202':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+    get:
+      tags:
+      - 联网选品
+      summary: Runs
+      operationId: runs_api_v1_market_runs_get
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+          title: Page
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Page Size
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityPage'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+  /api/v1/market/runs/manual:
+    post:
+      tags:
+      - 联网选品
+      summary: Manual
+      operationId: manual_api_v1_market_runs_manual_post
+      parameters:
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ManualRunInput'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/market/runs/{run_id}:
+    get:
+      tags:
+      - 联网选品
+      summary: Detail
+      operationId: detail_api_v1_market_runs__run_id__get
+      parameters:
+      - name: run_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Run Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+  /api/v1/market/runs/{run_id}/compare:
+    post:
+      tags:
+      - 联网选品
+      summary: Compare
+      operationId: compare_api_v1_market_runs__run_id__compare_post
+      parameters:
+      - name: run_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Run Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompareInput'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/market/reports:
+    get:
+      tags:
+      - 联网选品
+      summary: Reports
+      operationId: reports_api_v1_market_reports_get
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+          title: Page
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Page Size
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityPage'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+  /api/v1/market/reports/{report_id}:
+    get:
+      tags:
+      - 联网选品
+      summary: Report
+      operationId: report_api_v1_market_reports__report_id__get
+      parameters:
+      - name: report_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Report Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+  /api/v1/market/reports/{report_id}/candidate:
+    post:
+      tags:
+      - 联网选品
+      summary: Promote
+      operationId: promote_api_v1_market_reports__report_id__candidate_post
+      parameters:
+      - name: report_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Report Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PromoteInput'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/market/reports/{report_id}/export:
+    get:
+      tags:
+      - 联网选品
+      summary: Export
+      operationId: export_api_v1_market_reports__report_id__export_get
+      parameters:
+      - name: report_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Report Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
 components:
   schemas:
     Assessment:
@@ -5055,6 +5479,238 @@ components:
       - refund_reserve
       - advertising_budget
       title: Cashflow
+    CompareInput:
+      properties:
+        expected_version:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Expected Version
+        supply_id:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Supply Id
+        retail_id:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Retail Id
+        supply_sku:
+          type: string
+          title: Supply Sku
+          default: ''
+        retail_sku:
+          type: string
+          title: Retail Sku
+          default: ''
+        purchase_quantity:
+          type: integer
+          maximum: 1000000.0
+          exclusiveMinimum: 0.0
+          title: Purchase Quantity
+          default: 1
+        procurement_mode:
+          type: string
+          enum:
+          - STOCK
+          - DROPSHIP
+          title: Procurement Mode
+          default: STOCK
+        min_order:
+          anyOf:
+          - type: integer
+            maximum: 1000000.0
+            exclusiveMinimum: 0.0
+          - type: 'null'
+          title: Min Order
+        dropship_verified:
+          type: boolean
+          title: Dropship Verified
+          default: false
+        supply_pack:
+          anyOf:
+          - type: integer
+            maximum: 100000.0
+            exclusiveMinimum: 0.0
+          - type: 'null'
+          title: Supply Pack
+        retail_pack:
+          anyOf:
+          - type: integer
+            maximum: 100000.0
+            exclusiveMinimum: 0.0
+          - type: 'null'
+          title: Retail Pack
+        allow_repack:
+          type: boolean
+          title: Allow Repack
+          default: false
+        match_confirmed:
+          type: boolean
+          title: Match Confirmed
+          default: false
+        verification_reason:
+          type: string
+          maxLength: 3000
+          title: Verification Reason
+          default: ''
+        supply_attributes:
+          additionalProperties:
+            type: string
+          type: object
+          title: Supply Attributes
+        retail_attributes:
+          additionalProperties:
+            type: string
+          type: object
+          title: Retail Attributes
+        supply_price:
+          anyOf:
+          - type: string
+            pattern: ^\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: Supply Price
+        retail_price:
+          anyOf:
+          - type: string
+            pattern: ^\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: Retail Price
+        retail_shipping:
+          anyOf:
+          - type: string
+            pattern: ^\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: Retail Shipping
+        sale_price:
+          anyOf:
+          - type: string
+            pattern: ^\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: Sale Price
+        inbound_shipping:
+          anyOf:
+          - type: string
+            pattern: ^\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: Inbound Shipping
+        outbound_shipping:
+          anyOf:
+          - type: string
+            pattern: ^\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: Outbound Shipping
+        packaging:
+          anyOf:
+          - type: string
+            pattern: ^\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: Packaging
+        fees:
+          anyOf:
+          - type: string
+            pattern: ^\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: Fees
+        advertising:
+          anyOf:
+          - type: string
+            pattern: ^\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: Advertising
+        refund_rate:
+          anyOf:
+          - type: number
+            maximum: 1.0
+            minimum: 0.0
+          - type: string
+          - type: 'null'
+          title: Refund Rate
+        refund_loss:
+          anyOf:
+          - type: string
+            pattern: ^\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: Refund Loss
+        ad_budget:
+          anyOf:
+          - type: string
+            pattern: ^\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: Ad Budget
+        region:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Region
+          default: 全国
+      additionalProperties: false
+      type: object
+      required:
+      - expected_version
+      - supply_id
+      - retail_id
+      title: CompareInput
+    ConnectionInput:
+      properties:
+        enabled:
+          type: boolean
+          title: Enabled
+          default: true
+        api_key:
+          anyOf:
+          - type: string
+            maxLength: 500
+          - type: 'null'
+          title: Api Key
+        api_secret:
+          anyOf:
+          - type: string
+            maxLength: 500
+          - type: 'null'
+          title: Api Secret
+        access_token:
+          anyOf:
+          - type: string
+            maxLength: 2000
+          - type: 'null'
+          title: Access Token
+        taobao_route:
+          type: string
+          enum:
+          - tglobal
+          - taobao
+          title: Taobao Route
+          default: tglobal
+        platforms:
+          items:
+            type: string
+            enum:
+            - '1688'
+            - taobao
+            - jd
+            - pinduoduo
+          type: array
+          maxItems: 4
+          minItems: 1
+          title: Platforms
+        permission_note:
+          type: string
+          maxLength: 1000
+          title: Permission Note
+          default: ''
+      additionalProperties: false
+      type: object
+      title: ConnectionInput
+    ConnectionTest:
+      properties:
+        query:
+          type: string
+          title: Query
+          default: 牙刷
+      additionalProperties: false
+      type: object
+      title: ConnectionTest
     EntityOut:
       properties:
         id:
@@ -5491,6 +6147,115 @@ components:
       required:
       - password
       title: Login
+    ManualQuote:
+      properties:
+        platform:
+          type: string
+          enum:
+          - '1688'
+          - taobao
+          - jd
+          - pinduoduo
+          title: Platform
+        title:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Title
+        url:
+          type: string
+          maxLength: 2000
+          minLength: 1
+          title: Url
+        price:
+          type: string
+          pattern: ^\d+(\.\d{1,4})?$
+          title: Price
+        pack_count:
+          anyOf:
+          - type: integer
+            maximum: 100000.0
+            exclusiveMinimum: 0.0
+          - type: 'null'
+          title: Pack Count
+        material:
+          type: string
+          maxLength: 500
+          title: Material
+          default: ''
+        size:
+          type: string
+          maxLength: 500
+          title: Size
+          default: ''
+        brand:
+          type: string
+          maxLength: 500
+          title: Brand
+          default: ''
+        model:
+          type: string
+          maxLength: 500
+          title: Model
+          default: ''
+        min_order:
+          anyOf:
+          - type: integer
+            maximum: 1000000.0
+            exclusiveMinimum: 0.0
+          - type: 'null'
+          title: Min Order
+        shipping:
+          anyOf:
+          - type: string
+            pattern: ^\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: Shipping
+        shipping_region:
+          type: string
+          maxLength: 100
+          title: Shipping Region
+          default: ''
+        observed_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Observed At
+        evidence_note:
+          type: string
+          maxLength: 1500
+          minLength: 5
+          title: Evidence Note
+      additionalProperties: false
+      type: object
+      required:
+      - platform
+      - title
+      - url
+      - price
+      - evidence_note
+      title: ManualQuote
+    ManualRunInput:
+      properties:
+        query:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: Query
+        quotes:
+          items:
+            $ref: '#/components/schemas/ManualQuote'
+          type: array
+          maxItems: 4
+          minItems: 2
+          title: Quotes
+      additionalProperties: false
+      type: object
+      required:
+      - query
+      - quotes
+      title: ManualRunInput
     Match:
       properties:
         listing_id:
@@ -6015,6 +6780,24 @@ components:
       - expected_version
       - payload
       title: ProfitsUpdate
+    PromoteInput:
+      properties:
+        category:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Category
+        name:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Name
+      additionalProperties: false
+      type: object
+      required:
+      - category
+      - name
+      title: PromoteInput
     Risk:
       properties:
         candidate_id:
@@ -6118,6 +6901,49 @@ components:
       additionalProperties: false
       type: object
       title: ScoreRequest
+    SearchInput:
+      properties:
+        query:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: Query
+        platforms:
+          items:
+            type: string
+            enum:
+            - '1688'
+            - taobao
+            - jd
+            - pinduoduo
+          type: array
+          maxItems: 4
+          minItems: 2
+          title: Platforms
+        per_platform:
+          type: integer
+          maximum: 5.0
+          minimum: 1.0
+          title: Per Platform
+          default: 3
+        page:
+          type: integer
+          maximum: 20.0
+          minimum: 1.0
+          title: Page
+          default: 1
+        mode:
+          type: string
+          enum:
+          - LIVE
+          - DEMO
+          title: Mode
+          default: LIVE
+      additionalProperties: false
+      type: object
+      required:
+      - query
+      title: SearchInput
     Signal:
       properties:
         listing_id:

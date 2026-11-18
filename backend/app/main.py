@@ -23,6 +23,7 @@ from app.db import Audit, ImportBatch, Job, LoginSession, Revision, Session, new
 from app.domain import fingerprint, money, profit, safe_cell
 from app.errors import BusinessError
 from app.ingestion import IMPORTABLE, preview
+from app.market_routes import register_market_routes
 from app.schemas import (
     CONTRACTS,
     Cashflow,
@@ -34,7 +35,7 @@ from app.schemas import (
     ProfitInput,
     Transition,
 )
-from app.store import audit, get, latest, list_page, require_source, row_out, save
+from app.store import audit, get, latest, list_page, persist, require_source, row_out, save
 from app.workflows import config_for, gate, review_match, transition
 
 app = FastAPI(
@@ -413,6 +414,17 @@ def cancel_job(job_id: str, ws=Depends(workspace), db=Depends(database, scope="f
         job.status = "CANCELLED"
         if job.kind == "import":
             db.get(ImportBatch, job.payload["batch_id"]).status = "CANCELLED"
+        if job.kind == "market_search":
+            run = get(db, ws, job.payload["run_id"], "market_runs")
+            persist(
+                db,
+                ws,
+                "market_runs",
+                {**run.data, "status": "CANCELLED"},
+                entity=run,
+                expected_version=run.version,
+                action="cancel_market_search",
+            )
         audit(db, ws, job.id, "cancel_job")
     return job_out(job)
 
@@ -771,6 +783,8 @@ def resource_routes(kind, schema):
 
 for resource_kind, contract in CONTRACTS.items():
     resource_routes(resource_kind, contract)
+
+register_market_routes(app, Auth, database, workspace)
 
 
 def openapi_contract():

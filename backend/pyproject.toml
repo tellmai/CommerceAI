@@ -11,6 +11,7 @@ dependencies = [
   "fastapi>=0.115,<1", "pydantic>=2.10,<3", "sqlalchemy>=2.0,<3",
   "alembic>=1.14,<2", "psycopg[binary]>=3.2,<4", "uvicorn>=0.34,<1",
   "python-multipart>=0.0.20", "PyYAML>=6,<7", "openpyxl>=3.1,<4",
+  "httpx>=0.28,<1",
 ]
 
 [project.optional-dependencies]
@@ -33,5 +34,6 @@ ignore = ["E731"]
 
 [tool.ruff.lint.per-file-ignores]
 "app/main.py" = ["B008"]
+"app/market_routes.py" = ["B008"]
 "app/schemas.py" = ["E741"]
 "tests/test_domain.py" = ["E741"]

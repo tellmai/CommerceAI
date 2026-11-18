@@ -27,6 +27,10 @@ def claim():
             if old.kind == "import":
                 batch = db.get(ImportBatch, old.payload["batch_id"])
                 batch.status = "FAILED"
+            elif old.kind == "market_search":
+                from app.market_service import record_search_failure
+
+                record_search_failure(db, old)
         job = db.scalar(
             select(Job)
             .where(
@@ -65,6 +69,10 @@ def execute(job_id, token):
                 job = assert_lease(db, job_id, token)
                 score = run_score(db, workspace, payload["candidate_id"], payload["strategy_id"])
                 job.status, job.progress, job.result = "SUCCEEDED", 100, {"score_id": score.id}
+        elif kind == "market_search":
+            from app.market_service import execute_search
+
+            execute_search(job_id, token)
         else:
             raise BusinessError("UNKNOWN_JOB", "未知任务类型")
     except Exception as exc:
@@ -84,6 +92,10 @@ def execute(job_id, token):
             if job.kind == "import":
                 batch = db.get(ImportBatch, job.payload["batch_id"])
                 batch.status = job.status
+            elif job.kind == "market_search":
+                from app.market_service import record_search_failure
+
+                record_search_failure(db, job)
         log.error("job_failed job_id=%s error_code=%s exception_type=%s", job_id, code, type(exc).__name__)
 
 

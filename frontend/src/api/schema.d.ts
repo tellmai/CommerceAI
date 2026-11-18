@@ -1236,6 +1236,178 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/market/connection": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Status */
+        get: operations["status_api_v1_market_connection_get"];
+        /** Configure */
+        put: operations["configure_api_v1_market_connection_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/market/connection/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Test Connection */
+        post: operations["test_connection_api_v1_market_connection_test_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/market/runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Runs */
+        get: operations["runs_api_v1_market_runs_get"];
+        put?: never;
+        /** Search */
+        post: operations["search_api_v1_market_runs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/market/runs/manual": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Manual */
+        post: operations["manual_api_v1_market_runs_manual_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/market/runs/{run_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Detail */
+        get: operations["detail_api_v1_market_runs__run_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/market/runs/{run_id}/compare": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Compare */
+        post: operations["compare_api_v1_market_runs__run_id__compare_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/market/reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Reports */
+        get: operations["reports_api_v1_market_reports_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/market/reports/{report_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Report */
+        get: operations["report_api_v1_market_reports__report_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/market/reports/{report_id}/candidate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Promote */
+        post: operations["promote_api_v1_market_reports__report_id__candidate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/market/reports/{report_id}/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export */
+        get: operations["export_api_v1_market_reports__report_id__export_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1338,6 +1510,134 @@ export interface components {
             refund_reserve: string;
             /** Advertising Budget */
             advertising_budget: string;
+        };
+        /** CompareInput */
+        CompareInput: {
+            /** Expected Version */
+            expected_version: number;
+            /** Supply Id */
+            supply_id: string;
+            /** Retail Id */
+            retail_id: string;
+            /**
+             * Supply Sku
+             * @default
+             */
+            supply_sku: string;
+            /**
+             * Retail Sku
+             * @default
+             */
+            retail_sku: string;
+            /**
+             * Purchase Quantity
+             * @default 1
+             */
+            purchase_quantity: number;
+            /**
+             * Procurement Mode
+             * @default STOCK
+             * @enum {string}
+             */
+            procurement_mode: "STOCK" | "DROPSHIP";
+            /** Min Order */
+            min_order?: number | null;
+            /**
+             * Dropship Verified
+             * @default false
+             */
+            dropship_verified: boolean;
+            /** Supply Pack */
+            supply_pack?: number | null;
+            /** Retail Pack */
+            retail_pack?: number | null;
+            /**
+             * Allow Repack
+             * @default false
+             */
+            allow_repack: boolean;
+            /**
+             * Match Confirmed
+             * @default false
+             */
+            match_confirmed: boolean;
+            /**
+             * Verification Reason
+             * @default
+             */
+            verification_reason: string;
+            /** Supply Attributes */
+            supply_attributes?: {
+                [key: string]: string;
+            };
+            /** Retail Attributes */
+            retail_attributes?: {
+                [key: string]: string;
+            };
+            /** Supply Price */
+            supply_price?: string | null;
+            /** Retail Price */
+            retail_price?: string | null;
+            /** Retail Shipping */
+            retail_shipping?: string | null;
+            /** Sale Price */
+            sale_price?: string | null;
+            /** Inbound Shipping */
+            inbound_shipping?: string | null;
+            /** Outbound Shipping */
+            outbound_shipping?: string | null;
+            /** Packaging */
+            packaging?: string | null;
+            /** Fees */
+            fees?: string | null;
+            /** Advertising */
+            advertising?: string | null;
+            /** Refund Rate */
+            refund_rate?: number | string | null;
+            /** Refund Loss */
+            refund_loss?: string | null;
+            /** Ad Budget */
+            ad_budget?: string | null;
+            /**
+             * Region
+             * @default 全国
+             */
+            region: string;
+        };
+        /** ConnectionInput */
+        ConnectionInput: {
+            /**
+             * Enabled
+             * @default true
+             */
+            enabled: boolean;
+            /** Api Key */
+            api_key?: string | null;
+            /** Api Secret */
+            api_secret?: string | null;
+            /** Access Token */
+            access_token?: string | null;
+            /**
+             * Taobao Route
+             * @default tglobal
+             * @enum {string}
+             */
+            taobao_route: "tglobal" | "taobao";
+            /** Platforms */
+            platforms?: ("1688" | "taobao" | "jd" | "pinduoduo")[];
+            /**
+             * Permission Note
+             * @default
+             */
+            permission_note: string;
+        };
+        /** ConnectionTest */
+        ConnectionTest: {
+            /**
+             * Query
+             * @default 牙刷
+             */
+            query: string;
         };
         /** EntityOut */
         EntityOut: {
@@ -1572,6 +1872,62 @@ export interface components {
         Login: {
             /** Password */
             password: string;
+        };
+        /** ManualQuote */
+        ManualQuote: {
+            /**
+             * Platform
+             * @enum {string}
+             */
+            platform: "1688" | "taobao" | "jd" | "pinduoduo";
+            /** Title */
+            title: string;
+            /** Url */
+            url: string;
+            /** Price */
+            price: string;
+            /** Pack Count */
+            pack_count?: number | null;
+            /**
+             * Material
+             * @default
+             */
+            material: string;
+            /**
+             * Size
+             * @default
+             */
+            size: string;
+            /**
+             * Brand
+             * @default
+             */
+            brand: string;
+            /**
+             * Model
+             * @default
+             */
+            model: string;
+            /** Min Order */
+            min_order?: number | null;
+            /** Shipping */
+            shipping?: string | null;
+            /**
+             * Shipping Region
+             * @default
+             */
+            shipping_region: string;
+            /** Observed At */
+            observed_at?: string | null;
+            /** Evidence Note */
+            evidence_note: string;
+        };
+        /** ManualRunInput */
+        ManualRunInput: {
+            /** Query */
+            query: string;
+            /** Quotes */
+            quotes: components["schemas"]["ManualQuote"][];
         };
         /** Match */
         Match: {
@@ -1841,6 +2197,13 @@ export interface components {
             expected_version: number;
             payload: components["schemas"]["Profit"];
         };
+        /** PromoteInput */
+        PromoteInput: {
+            /** Category */
+            category: string;
+            /** Name */
+            name: string;
+        };
         /** Risk */
         Risk: {
             /** Candidate Id */
@@ -1890,6 +2253,29 @@ export interface components {
         ScoreRequest: {
             /** Strategy Id */
             strategy_id?: string | null;
+        };
+        /** SearchInput */
+        SearchInput: {
+            /** Query */
+            query: string;
+            /** Platforms */
+            platforms?: ("1688" | "taobao" | "jd" | "pinduoduo")[];
+            /**
+             * Per Platform
+             * @default 3
+             */
+            per_platform: number;
+            /**
+             * Page
+             * @default 1
+             */
+            page: number;
+            /**
+             * Mode
+             * @default LIVE
+             * @enum {string}
+             */
+            mode: "LIVE" | "DEMO";
         };
         /** Signal */
         Signal: {
@@ -5994,6 +6380,405 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EntityOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    status_api_v1_market_connection_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    configure_api_v1_market_connection_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConnectionInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    test_connection_api_v1_market_connection_test_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConnectionTest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    runs_api_v1_market_runs_get: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: {
+                "x-workspace"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntityPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    search_api_v1_market_runs_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SearchInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    manual_api_v1_market_runs_manual_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ManualRunInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntityOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    detail_api_v1_market_runs__run_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace"?: string;
+            };
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    compare_api_v1_market_runs__run_id__compare_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace"?: string;
+            };
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompareInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntityOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reports_api_v1_market_reports_get: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: {
+                "x-workspace"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntityPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    report_api_v1_market_reports__report_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace"?: string;
+            };
+            path: {
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntityOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    promote_api_v1_market_reports__report_id__candidate_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace"?: string;
+            };
+            path: {
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PromoteInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntityOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_api_v1_market_reports__report_id__export_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace"?: string;
+            };
+            path: {
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

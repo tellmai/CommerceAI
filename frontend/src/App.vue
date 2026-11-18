@@ -9,7 +9,7 @@ import RecordForm from './components/RecordForm.vue'
 const route = useRoute(), router = useRouter()
 const password = ref(''), loading = ref(false), loginError = ref(''), checking = ref(true)
 const menus = [
-  {label:'经营工作台', path:'/', icon:DataAnalysis}, {label:'选品中心', path:'/records/candidates', icon:Search},
+  {label:'经营工作台', path:'/', icon:DataAnalysis}, {label:'找货与比价', path:'/discover', icon:Search}, {label:'选品中心', path:'/records/candidates', icon:Search},
   {label:'关键词研究', path:'/records/keywords', icon:TrendCharts}, {label:'商品与比价', path:'/records/products', icon:Goods},
   {label:'货源与样品', path:'/records/suppliers', icon:Box}, {label:'利润测算', path:'/profit', icon:Coin},
   {label:'风险审核', path:'/records/risks', icon:DocumentChecked}, {label:'测款与复盘', path:'/records/experiments', icon:Connection},

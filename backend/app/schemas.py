@@ -402,6 +402,8 @@ CONTRACTS = {
 }
 
 REFERENCES = {
+    "market_run_id": "market_runs",
+    "market_report_id": "market_reports",
     "source_id": "sources",
     "evidence_id": "evidence",
     "product_id": "products",

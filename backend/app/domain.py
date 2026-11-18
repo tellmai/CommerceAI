@@ -162,7 +162,7 @@ def summarize_scores(scores, config, gate="PASS", critical_missing=False):
 
 def normalize_attribute(value):
     text = str(value).strip().lower().replace(" ", "")
-    match = re.fullmatch(r"([\d.]+)(mm|cm|m|g|kg)", text)
+    match = re.fullmatch(r"(\d+(?:\.\d+)?|\.\d+)(mm|cm|m|g|kg)", text)
     if match:
         number = D(match[1])
         unit = match[2]

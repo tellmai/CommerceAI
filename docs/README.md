@@ -9,6 +9,7 @@
 3. [运营 SOP 与任务状态](03_运营SOP与开发任务_V1.1.md)：操作顺序、关键审核、P0/P1 边界。
 4. [选品测款工作簿](04_选品测款工作簿_V1.1.xlsx)：独立人工研究辅助，填写前更新研究基准时间。
 5. [运行与维护](运行与维护.md)、[验收报告](验收报告.md)：启动、资源、备份恢复及验证证据。
+6. [找货与比价](联网选品与比价.md)：P1 四平台人工报价、利润与采购建议、自有账号启用自动查询。
 
 工程契约：[OpenAPI](openapi.yaml)、[SQL](schema.sql)、[策略配置](strategy_config.yaml)、[字段字典](字段字典.md)。API 从应用定义导出，SQL 从 Alembic 导出，策略主文件为 `../config/strategy_config.yaml`。使用 `scripts/export_contracts.py` 同步，禁止分别手工改动生成契约。
 
