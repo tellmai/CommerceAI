@@ -1,0 +1,72 @@
+name: CommerceAI checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: commerceai_test
+          POSTGRES_USER: commerceai
+          POSTGRES_PASSWORD: ci-isolated-password
+        ports: ['5432:5432']
+        options: >-
+          --memory=768m
+          --health-cmd "pg_isready -U commerceai -d commerceai_test"
+          --health-interval 5s --health-timeout 3s --health-retries 20
+    env:
+      DATABASE_URL: postgresql+psycopg://commerceai:ci-isolated-password@localhost:5432/commerceai_test
+      TEST_DATABASE_URL: postgresql+psycopg://commerceai:ci-isolated-password@localhost:5432/commerceai_test
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with: {python-version: '3.12'}
+      - uses: actions/setup-node@v7
+        with: {node-version: '22', cache: npm, cache-dependency-path: frontend/package-lock.json}
+      - run: pip install -r backend/requirements.lock -r backend/requirements-dev.lock
+      - run: ruff check backend
+      - run: python -m pytest backend/tests -q
+      - run: python scripts/export_contracts.py --check
+      - run: npm ci && npm run types && npm run build
+        working-directory: frontend
+      - run: git diff --exit-code -- frontend/src/api/schema.d.ts
+      - run: npx playwright install --with-deps chromium && npm run test:e2e
+        working-directory: frontend
+      - run: docker compose config --quiet
+        env: {POSTGRES_PASSWORD: ci-isolated-password, OWNER_PASSWORD: ci-isolated-owner}
+  compose:
+    runs-on: ubuntu-latest
+    env:
+      POSTGRES_PASSWORD: ci-compose-password
+      OWNER_PASSWORD: ci-compose-owner
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build and start all four services
+        run: docker compose up --build -d --wait --wait-timeout 180
+      - name: Verify static UI, authenticated API and backup restore
+        run: |
+          curl --fail http://127.0.0.1:8080/ > /tmp/commerceai-index.html
+          curl --fail http://127.0.0.1:8080/api/health
+          python3 - <<'PY'
+          import json, os, urllib.request
+          request=urllib.request.Request('http://127.0.0.1:8080/api/v1/auth/login', data=json.dumps({'password':os.environ['OWNER_PASSWORD']}).encode(),headers={'Content-Type':'application/json'})
+          result=json.load(urllib.request.urlopen(request))
+          assert result['csrf']
+          PY
+          bash scripts/backup-compose.sh
+          backup_dir=$(find .local/backups -maxdepth 1 -type d -name 'compose-*' | sort | tail -1)
+          bash scripts/restore-compose.sh "$backup_dir"
+          curl --fail --retry 20 --retry-delay 3 --retry-all-errors http://127.0.0.1:8081/api/health
+          docker compose exec -T db psql -U commerceai -d commerceai -Atc 'select count(*) from login_session;'
+          docker compose -p commerceai-restorecheck exec -T db psql -U commerceai -d commerceai -Atc 'select count(*) from entity;'
+      - name: Container logs
+        if: failure()
+        run: docker compose logs --tail=100
+      - name: Clean temporary CI containers
+        if: always()
+        run: |
+          docker compose -p commerceai-restorecheck down -v
+          docker compose down -v

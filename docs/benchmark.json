@@ -1,0 +1,28 @@
+{
+  "environment": "Native PostgreSQL 16 / Linux; separate API and worker processes; Docker unavailable",
+  "rows": 100000,
+  "file_bytes": 4592056,
+  "import_seconds": 83.365,
+  "pagination_samples": 34,
+  "pagination_p95_ms": 62.787,
+  "pagination_median_ms": 10.424,
+  "memory_metric": "PSS includes API, worker and all PostgreSQL cluster processes; excludes browser, build and OS file cache",
+  "idle_mib": {
+    "api": 64.55,
+    "worker": 41.44,
+    "postgres": 58.66
+  },
+  "peak_mib": {
+    "api": 66.71,
+    "worker": 64.14,
+    "postgres": 192.52
+  },
+  "peak_total_mib": 316.34,
+  "result": {
+    "accepted": 100000,
+    "batch_id": "b8e73e69-a0d1-4164-a67d-72cb2a2211bf",
+    "rejected": 0,
+    "unchanged": 0
+  },
+  "measured_at": "2026-11-17T09:35:37.326721+00:00"
+}

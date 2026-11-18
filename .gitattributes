@@ -1,0 +1,3 @@
+# Preserve the original V1.0 package byte for byte.
+file/** -whitespace
+*.csv whitespace=cr-at-eol

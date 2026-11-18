@@ -1,0 +1,37 @@
+version: selection-v1.1
+timezone: Asia/Shanghai
+currency: CNY
+demo_only: false
+required_attributes: [material, size]
+strategy:
+  blue_ocean:
+    search_index_min: 100
+    search_index_max: 10000
+    listing_count_max_exclusive: 5000
+    opportunity_min_exclusive: 0.5
+    conversion_min: 0.03
+    mall_click_share_max_exclusive: 0.60
+  growth:
+    min_growth_exclusive: 0.20
+    min_comparable_weeks: 4
+  price_gap:
+    normal_contribution_min: 10
+    stress_contribution_min: 0
+    min_comparable_retail_quotes: 5
+  pain_point:
+    min_distinct_reviews: 20
+  bundle:
+    require_verified_bundle_fulfillment: true
+score:
+  min_percentile_sample: 30
+  min_coverage_for_partial_display: 0.80
+  weights: {demand: 20, competition: 15, profit: 25, supply: 15, growth: 10, aftersale: 10, differentiation: 5}
+  grades: {S: 85, A: 75, B: 65, C: 50, D: 0}
+  fallback_ranges: {}
+freshness:
+  price_hours: 24
+  keyword_snapshot_hours: 48
+experiment:
+  target_days: 14
+  target_valid_clicks: 100
+  default_budget_cny: 50

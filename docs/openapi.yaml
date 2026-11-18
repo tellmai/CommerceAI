@@ -1,0 +1,6544 @@
+openapi: 3.1.0
+info:
+  title: CommerceAI 本地经营研究 API
+  version: 1.0.0
+paths:
+  /api/health:
+    get:
+      summary: Health
+      operationId: health_api_health_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security: []
+  /api/v1/auth/login:
+    post:
+      summary: Login
+      operationId: login_api_v1_auth_login_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Login'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security: []
+  /api/v1/auth/me:
+    get:
+      summary: Me
+      operationId: me_api_v1_auth_me_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+      - sessionCookie: []
+  /api/v1/auth/logout:
+    post:
+      summary: Logout
+      operationId: logout_api_v1_auth_logout_post
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/meta:
+    get:
+      summary: Meta
+      operationId: meta_api_v1_meta_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+      - sessionCookie: []
+  /api/v1/dashboard:
+    get:
+      summary: Get Dashboard
+      operationId: get_dashboard_api_v1_dashboard_get
+      parameters:
+      - name: start
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Start
+      - name: end
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: End
+      - name: category
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Category
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+  /api/v1/profit/calculate:
+    post:
+      summary: Calculate Profit
+      operationId: calculate_profit_api_v1_profit_calculate_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfitInput'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/profit/cashflow:
+    post:
+      summary: Calculate Cashflow
+      operationId: calculate_cashflow_api_v1_profit_cashflow_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Cashflow'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/candidates/{candidate_id}/transition:
+    post:
+      summary: Change State
+      operationId: change_state_api_v1_candidates__candidate_id__transition_post
+      parameters:
+      - name: candidate_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Candidate Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Transition'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/candidates/{candidate_id}/research:
+    get:
+      summary: Research
+      operationId: research_api_v1_candidates__candidate_id__research_get
+      parameters:
+      - name: candidate_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Candidate Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+  /api/v1/keywords/{keyword_id}/analysis:
+    get:
+      summary: Keyword Analysis
+      operationId: keyword_analysis_api_v1_keywords__keyword_id__analysis_get
+      parameters:
+      - name: keyword_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Keyword Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+  /api/v1/candidates/{candidate_id}/score:
+    post:
+      summary: Score Candidate
+      operationId: score_candidate_api_v1_candidates__candidate_id__score_post
+      parameters:
+      - name: candidate_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Candidate Id
+      - name: Idempotency-Key
+        in: header
+        required: false
+        schema:
+          type: string
+          title: Idempotency-Key
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScoreRequest'
+      responses:
+        '202':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/scores/{score_id}/replay:
+    get:
+      summary: Replay Score
+      operationId: replay_score_api_v1_scores__score_id__replay_get
+      parameters:
+      - name: score_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Score Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+  /api/v1/matches/{match_id}/review:
+    post:
+      summary: Confirm Match
+      operationId: confirm_match_api_v1_matches__match_id__review_post
+      parameters:
+      - name: match_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Match Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MatchReview'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/skus/{sku_id}/comparison:
+    get:
+      summary: Sku Comparison
+      operationId: sku_comparison_api_v1_skus__sku_id__comparison_get
+      parameters:
+      - name: sku_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Sku Id
+      - name: region
+        in: query
+        required: false
+        schema:
+          type: string
+          default: 全国
+          title: Region
+      - name: currency
+        in: query
+        required: false
+        schema:
+          type: string
+          default: CNY
+          title: Currency
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+  /api/v1/experiments/{experiment_id}/summary:
+    get:
+      summary: Get Experiment Summary
+      operationId: get_experiment_summary_api_v1_experiments__experiment_id__summary_get
+      parameters:
+      - name: experiment_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Experiment Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+  /api/v1/experiments/{experiment_id}/allocate-ads:
+    post:
+      summary: Allocate Experiment Ads
+      operationId: allocate_experiment_ads_api_v1_experiments__experiment_id__allocate_ads_post
+      parameters:
+      - name: experiment_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Experiment Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/jobs:
+    get:
+      summary: Jobs
+      operationId: jobs_api_v1_jobs_get
+      parameters:
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+  /api/v1/jobs/{job_id}:
+    get:
+      summary: Get Job
+      operationId: get_job_api_v1_jobs__job_id__get
+      parameters:
+      - name: job_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Job Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+  /api/v1/jobs/{job_id}/cancel:
+    post:
+      summary: Cancel Job
+      operationId: cancel_job_api_v1_jobs__job_id__cancel_post
+      parameters:
+      - name: job_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Job Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/imports:
+    get:
+      summary: Imports
+      operationId: imports_api_v1_imports_get
+      parameters:
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+  /api/v1/imports/preview:
+    post:
+      summary: Upload Preview
+      operationId: upload_preview_api_v1_imports_preview_post
+      parameters:
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Body_upload_preview_api_v1_imports_preview_post'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/imports/{batch_id}/confirm:
+    post:
+      summary: Confirm Import
+      operationId: confirm_import_api_v1_imports__batch_id__confirm_post
+      parameters:
+      - name: batch_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Batch Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImportConfirm'
+      responses:
+        '202':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/imports/{batch_id}/errors:
+    get:
+      summary: Import Errors
+      operationId: import_errors_api_v1_imports__batch_id__errors_get
+      parameters:
+      - name: batch_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Batch Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+  /api/v1/audit:
+    get:
+      summary: Audit Events
+      operationId: audit_events_api_v1_audit_get
+      parameters:
+      - name: entity_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Entity Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+  /api/v1/history/{entity_id}:
+    get:
+      summary: History
+      operationId: history_api_v1_history__entity_id__get
+      parameters:
+      - name: entity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Entity Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+  /api/v1/exports/{kind}:
+    get:
+      summary: Export Data
+      operationId: export_data_api_v1_exports__kind__get
+      parameters:
+      - name: kind
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Kind
+      - name: format
+        in: query
+        required: false
+        schema:
+          type: string
+          default: csv
+          title: Format
+      - name: search
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ''
+          title: Search
+      - name: state
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ''
+          title: State
+      - name: category
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ''
+          title: Category
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+  /api/v1/templates/{kind}:
+    get:
+      summary: Import Template
+      operationId: import_template_api_v1_templates__kind__get
+      parameters:
+      - name: kind
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Kind
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+  /api/v1/sources:
+    get:
+      tags:
+      - sources
+      summary: Listing
+      operationId: get_sources
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+          title: Page
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Page Size
+      - name: search
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ''
+          title: Search
+      - name: parent_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Parent Id
+      - name: state
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: State
+      - name: category
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Category
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityPage'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+    post:
+      tags:
+      - sources
+      summary: Create
+      operationId: post_sources
+      parameters:
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Source'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/sources/{entity_id}:
+    get:
+      tags:
+      - sources
+      summary: Detail
+      operationId: get_sources_detail
+      parameters:
+      - name: entity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Entity Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+    put:
+      tags:
+      - sources
+      summary: Edit
+      operationId: put_sources_detail
+      parameters:
+      - name: entity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Entity Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SourcesUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/evidence:
+    get:
+      tags:
+      - evidence
+      summary: Listing
+      operationId: get_evidence
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+          title: Page
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Page Size
+      - name: search
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ''
+          title: Search
+      - name: parent_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Parent Id
+      - name: state
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: State
+      - name: category
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Category
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityPage'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+    post:
+      tags:
+      - evidence
+      summary: Create
+      operationId: post_evidence
+      parameters:
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Evidence'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/evidence/{entity_id}:
+    get:
+      tags:
+      - evidence
+      summary: Detail
+      operationId: get_evidence_detail
+      parameters:
+      - name: entity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Entity Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+    put:
+      tags:
+      - evidence
+      summary: Edit
+      operationId: put_evidence_detail
+      parameters:
+      - name: entity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Entity Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvidenceUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/keywords:
+    get:
+      tags:
+      - keywords
+      summary: Listing
+      operationId: get_keywords
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+          title: Page
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Page Size
+      - name: search
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ''
+          title: Search
+      - name: parent_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Parent Id
+      - name: state
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: State
+      - name: category
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Category
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityPage'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+    post:
+      tags:
+      - keywords
+      summary: Create
+      operationId: post_keywords
+      parameters:
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Keyword'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/keywords/{entity_id}:
+    get:
+      tags:
+      - keywords
+      summary: Detail
+      operationId: get_keywords_detail
+      parameters:
+      - name: entity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Entity Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+    put:
+      tags:
+      - keywords
+      summary: Edit
+      operationId: put_keywords_detail
+      parameters:
+      - name: entity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Entity Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KeywordsUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/products:
+    get:
+      tags:
+      - products
+      summary: Listing
+      operationId: get_products
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+          title: Page
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Page Size
+      - name: search
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ''
+          title: Search
+      - name: parent_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Parent Id
+      - name: state
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: State
+      - name: category
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Category
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityPage'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+    post:
+      tags:
+      - products
+      summary: Create
+      operationId: post_products
+      parameters:
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Product'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/products/{entity_id}:
+    get:
+      tags:
+      - products
+      summary: Detail
+      operationId: get_products_detail
+      parameters:
+      - name: entity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Entity Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+    put:
+      tags:
+      - products
+      summary: Edit
+      operationId: put_products_detail
+      parameters:
+      - name: entity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Entity Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductsUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/skus:
+    get:
+      tags:
+      - skus
+      summary: Listing
+      operationId: get_skus
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+          title: Page
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Page Size
+      - name: search
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ''
+          title: Search
+      - name: parent_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Parent Id
+      - name: state
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: State
+      - name: category
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Category
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityPage'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+    post:
+      tags:
+      - skus
+      summary: Create
+      operationId: post_skus
+      parameters:
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Sku'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/skus/{entity_id}:
+    get:
+      tags:
+      - skus
+      summary: Detail
+      operationId: get_skus_detail
+      parameters:
+      - name: entity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Entity Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+    put:
+      tags:
+      - skus
+      summary: Edit
+      operationId: put_skus_detail
+      parameters:
+      - name: entity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Entity Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SkusUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/listings:
+    get:
+      tags:
+      - listings
+      summary: Listing
+      operationId: get_listings
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+          title: Page
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Page Size
+      - name: search
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ''
+          title: Search
+      - name: parent_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Parent Id
+      - name: state
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: State
+      - name: category
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Category
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityPage'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+    post:
+      tags:
+      - listings
+      summary: Create
+      operationId: post_listings
+      parameters:
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Listing'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/listings/{entity_id}:
+    get:
+      tags:
+      - listings
+      summary: Detail
+      operationId: get_listings_detail
+      parameters:
+      - name: entity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Entity Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+    put:
+      tags:
+      - listings
+      summary: Edit
+      operationId: put_listings_detail
+      parameters:
+      - name: entity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Entity Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListingsUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/matches:
+    get:
+      tags:
+      - matches
+      summary: Listing
+      operationId: get_matches
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+          title: Page
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Page Size
+      - name: search
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ''
+          title: Search
+      - name: parent_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Parent Id
+      - name: state
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: State
+      - name: category
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Category
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityPage'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+    post:
+      tags:
+      - matches
+      summary: Create
+      operationId: post_matches
+      parameters:
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Match'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/matches/{entity_id}:
+    get:
+      tags:
+      - matches
+      summary: Detail
+      operationId: get_matches_detail
+      parameters:
+      - name: entity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Entity Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+    put:
+      tags:
+      - matches
+      summary: Edit
+      operationId: put_matches_detail
+      parameters:
+      - name: entity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Entity Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MatchesUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/prices:
+    get:
+      tags:
+      - prices
+      summary: Listing
+      operationId: get_prices
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+          title: Page
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Page Size
+      - name: search
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ''
+          title: Search
+      - name: parent_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Parent Id
+      - name: state
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: State
+      - name: category
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Category
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityPage'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+    post:
+      tags:
+      - prices
+      summary: Create
+      operationId: post_prices
+      parameters:
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Price'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/prices/{entity_id}:
+    get:
+      tags:
+      - prices
+      summary: Detail
+      operationId: get_prices_detail
+      parameters:
+      - name: entity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Entity Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+    put:
+      tags:
+      - prices
+      summary: Edit
+      operationId: put_prices_detail
+      parameters:
+      - name: entity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Entity Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PricesUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/suppliers:
+    get:
+      tags:
+      - suppliers
+      summary: Listing
+      operationId: get_suppliers
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+          title: Page
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Page Size
+      - name: search
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ''
+          title: Search
+      - name: parent_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Parent Id
+      - name: state
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: State
+      - name: category
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Category
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityPage'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+    post:
+      tags:
+      - suppliers
+      summary: Create
+      operationId: post_suppliers
+      parameters:
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Supplier'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/suppliers/{entity_id}:
+    get:
+      tags:
+      - suppliers
+      summary: Detail
+      operationId: get_suppliers_detail
+      parameters:
+      - name: entity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Entity Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+    put:
+      tags:
+      - suppliers
+      summary: Edit
+      operationId: put_suppliers_detail
+      parameters:
+      - name: entity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Entity Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SuppliersUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/offers:
+    get:
+      tags:
+      - offers
+      summary: Listing
+      operationId: get_offers
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+          title: Page
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Page Size
+      - name: search
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ''
+          title: Search
+      - name: parent_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Parent Id
+      - name: state
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: State
+      - name: category
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Category
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityPage'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+    post:
+      tags:
+      - offers
+      summary: Create
+      operationId: post_offers
+      parameters:
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Offer'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/offers/{entity_id}:
+    get:
+      tags:
+      - offers
+      summary: Detail
+      operationId: get_offers_detail
+      parameters:
+      - name: entity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Entity Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+    put:
+      tags:
+      - offers
+      summary: Edit
+      operationId: put_offers_detail
+      parameters:
+      - name: entity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Entity Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OffersUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/samples:
+    get:
+      tags:
+      - samples
+      summary: Listing
+      operationId: get_samples
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+          title: Page
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Page Size
+      - name: search
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ''
+          title: Search
+      - name: parent_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Parent Id
+      - name: state
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: State
+      - name: category
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Category
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityPage'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+    post:
+      tags:
+      - samples
+      summary: Create
+      operationId: post_samples
+      parameters:
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Sample'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/samples/{entity_id}:
+    get:
+      tags:
+      - samples
+      summary: Detail
+      operationId: get_samples_detail
+      parameters:
+      - name: entity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Entity Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+    put:
+      tags:
+      - samples
+      summary: Edit
+      operationId: put_samples_detail
+      parameters:
+      - name: entity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Entity Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SamplesUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/candidates:
+    get:
+      tags:
+      - candidates
+      summary: Listing
+      operationId: get_candidates
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+          title: Page
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Page Size
+      - name: search
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ''
+          title: Search
+      - name: parent_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Parent Id
+      - name: state
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: State
+      - name: category
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Category
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityPage'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+    post:
+      tags:
+      - candidates
+      summary: Create
+      operationId: post_candidates
+      parameters:
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Candidate'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/candidates/{entity_id}:
+    get:
+      tags:
+      - candidates
+      summary: Detail
+      operationId: get_candidates_detail
+      parameters:
+      - name: entity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Entity Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+    put:
+      tags:
+      - candidates
+      summary: Edit
+      operationId: put_candidates_detail
+      parameters:
+      - name: entity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Entity Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CandidatesUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/profits:
+    get:
+      tags:
+      - profits
+      summary: Listing
+      operationId: get_profits
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+          title: Page
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Page Size
+      - name: search
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ''
+          title: Search
+      - name: parent_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Parent Id
+      - name: state
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: State
+      - name: category
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Category
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityPage'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+    post:
+      tags:
+      - profits
+      summary: Create
+      operationId: post_profits
+      parameters:
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Profit'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/profits/{entity_id}:
+    get:
+      tags:
+      - profits
+      summary: Detail
+      operationId: get_profits_detail
+      parameters:
+      - name: entity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Entity Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+    put:
+      tags:
+      - profits
+      summary: Edit
+      operationId: put_profits_detail
+      parameters:
+      - name: entity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Entity Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfitsUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/assessments:
+    get:
+      tags:
+      - assessments
+      summary: Listing
+      operationId: get_assessments
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+          title: Page
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Page Size
+      - name: search
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ''
+          title: Search
+      - name: parent_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Parent Id
+      - name: state
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: State
+      - name: category
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Category
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityPage'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+    post:
+      tags:
+      - assessments
+      summary: Create
+      operationId: post_assessments
+      parameters:
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Assessment'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/assessments/{entity_id}:
+    get:
+      tags:
+      - assessments
+      summary: Detail
+      operationId: get_assessments_detail
+      parameters:
+      - name: entity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Entity Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+    put:
+      tags:
+      - assessments
+      summary: Edit
+      operationId: put_assessments_detail
+      parameters:
+      - name: entity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Entity Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssessmentsUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/risks:
+    get:
+      tags:
+      - risks
+      summary: Listing
+      operationId: get_risks
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+          title: Page
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Page Size
+      - name: search
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ''
+          title: Search
+      - name: parent_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Parent Id
+      - name: state
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: State
+      - name: category
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Category
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityPage'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+    post:
+      tags:
+      - risks
+      summary: Create
+      operationId: post_risks
+      parameters:
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Risk'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/risks/{entity_id}:
+    get:
+      tags:
+      - risks
+      summary: Detail
+      operationId: get_risks_detail
+      parameters:
+      - name: entity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Entity Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+    put:
+      tags:
+      - risks
+      summary: Edit
+      operationId: put_risks_detail
+      parameters:
+      - name: entity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Entity Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RisksUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/strategies:
+    get:
+      tags:
+      - strategies
+      summary: Listing
+      operationId: get_strategies
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+          title: Page
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Page Size
+      - name: search
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ''
+          title: Search
+      - name: parent_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Parent Id
+      - name: state
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: State
+      - name: category
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Category
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityPage'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+    post:
+      tags:
+      - strategies
+      summary: Create
+      operationId: post_strategies
+      parameters:
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Strategy'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/strategies/{entity_id}:
+    get:
+      tags:
+      - strategies
+      summary: Detail
+      operationId: get_strategies_detail
+      parameters:
+      - name: entity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Entity Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+    put:
+      tags:
+      - strategies
+      summary: Edit
+      operationId: put_strategies_detail
+      parameters:
+      - name: entity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Entity Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StrategiesUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/experiments:
+    get:
+      tags:
+      - experiments
+      summary: Listing
+      operationId: get_experiments
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+          title: Page
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Page Size
+      - name: search
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ''
+          title: Search
+      - name: parent_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Parent Id
+      - name: state
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: State
+      - name: category
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Category
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityPage'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+    post:
+      tags:
+      - experiments
+      summary: Create
+      operationId: post_experiments
+      parameters:
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Experiment'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/experiments/{entity_id}:
+    get:
+      tags:
+      - experiments
+      summary: Detail
+      operationId: get_experiments_detail
+      parameters:
+      - name: entity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Entity Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+    put:
+      tags:
+      - experiments
+      summary: Edit
+      operationId: put_experiments_detail
+      parameters:
+      - name: entity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Entity Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExperimentsUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/funnels:
+    get:
+      tags:
+      - funnels
+      summary: Listing
+      operationId: get_funnels
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+          title: Page
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Page Size
+      - name: search
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ''
+          title: Search
+      - name: parent_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Parent Id
+      - name: state
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: State
+      - name: category
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Category
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityPage'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+    post:
+      tags:
+      - funnels
+      summary: Create
+      operationId: post_funnels
+      parameters:
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Funnel'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/funnels/{entity_id}:
+    get:
+      tags:
+      - funnels
+      summary: Detail
+      operationId: get_funnels_detail
+      parameters:
+      - name: entity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Entity Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+    put:
+      tags:
+      - funnels
+      summary: Edit
+      operationId: put_funnels_detail
+      parameters:
+      - name: entity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Entity Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FunnelsUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/orders:
+    get:
+      tags:
+      - orders
+      summary: Listing
+      operationId: get_orders
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+          title: Page
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Page Size
+      - name: search
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ''
+          title: Search
+      - name: parent_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Parent Id
+      - name: state
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: State
+      - name: category
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Category
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityPage'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+    post:
+      tags:
+      - orders
+      summary: Create
+      operationId: post_orders
+      parameters:
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Order'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/orders/{entity_id}:
+    get:
+      tags:
+      - orders
+      summary: Detail
+      operationId: get_orders_detail
+      parameters:
+      - name: entity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Entity Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+    put:
+      tags:
+      - orders
+      summary: Edit
+      operationId: put_orders_detail
+      parameters:
+      - name: entity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Entity Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrdersUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/transactions:
+    get:
+      tags:
+      - transactions
+      summary: Listing
+      operationId: get_transactions
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+          title: Page
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Page Size
+      - name: search
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ''
+          title: Search
+      - name: parent_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Parent Id
+      - name: state
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: State
+      - name: category
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Category
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityPage'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+    post:
+      tags:
+      - transactions
+      summary: Create
+      operationId: post_transactions
+      parameters:
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Transaction'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/transactions/{entity_id}:
+    get:
+      tags:
+      - transactions
+      summary: Detail
+      operationId: get_transactions_detail
+      parameters:
+      - name: entity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Entity Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+    put:
+      tags:
+      - transactions
+      summary: Edit
+      operationId: put_transactions_detail
+      parameters:
+      - name: entity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Entity Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionsUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/signals:
+    get:
+      tags:
+      - signals
+      summary: Listing
+      operationId: get_signals
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+          title: Page
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Page Size
+      - name: search
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ''
+          title: Search
+      - name: parent_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Parent Id
+      - name: state
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: State
+      - name: category
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Category
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityPage'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+    post:
+      tags:
+      - signals
+      summary: Create
+      operationId: post_signals
+      parameters:
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Signal'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/signals/{entity_id}:
+    get:
+      tags:
+      - signals
+      summary: Detail
+      operationId: get_signals_detail
+      parameters:
+      - name: entity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Entity Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+    put:
+      tags:
+      - signals
+      summary: Edit
+      operationId: put_signals_detail
+      parameters:
+      - name: entity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Entity Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignalsUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+components:
+  schemas:
+    Assessment:
+      properties:
+        candidate_id:
+          type: string
+          title: Candidate Id
+        evidence_id:
+          type: string
+          title: Evidence Id
+        reason:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Reason
+        fulfillment_score:
+          anyOf:
+          - type: number
+            maximum: 100.0
+            minimum: 0.0
+          - type: string
+          - type: 'null'
+          title: Fulfillment Score
+        quality_score:
+          anyOf:
+          - type: number
+            maximum: 100.0
+            minimum: 0.0
+          - type: string
+          - type: 'null'
+          title: Quality Score
+        backup_score:
+          anyOf:
+          - type: number
+            maximum: 100.0
+            minimum: 0.0
+          - type: string
+          - type: 'null'
+          title: Backup Score
+        usage_risk_score:
+          anyOf:
+          - type: number
+            maximum: 100.0
+            minimum: 0.0
+          - type: string
+          - type: 'null'
+          title: Usage Risk Score
+        differentiation_score:
+          anyOf:
+          - type: number
+            maximum: 100.0
+            minimum: 0.0
+          - type: string
+          - type: 'null'
+          title: Differentiation Score
+        head_share:
+          anyOf:
+          - type: number
+            maximum: 1.0
+            minimum: 0.0
+          - type: string
+          - type: 'null'
+          title: Head Share
+        head_share_sample_count:
+          type: integer
+          minimum: 0.0
+          title: Head Share Sample Count
+          default: 0
+        head_share_precision:
+          type: string
+          enum:
+          - exact
+          - lower_bound
+          - estimate
+          - unknown
+          title: Head Share Precision
+          default: unknown
+        distinct_reviews:
+          anyOf:
+          - type: integer
+            minimum: 0.0
+          - type: 'null'
+          title: Distinct Reviews
+        pain_verified:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Pain Verified
+        pain_solvable:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Pain Solvable
+        bundle_fulfillment_verified:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Bundle Fulfillment Verified
+        single_contribution:
+          anyOf:
+          - type: string
+            pattern: ^\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: Single Contribution
+        bundle_contribution:
+          anyOf:
+          - type: string
+            pattern: ^\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: Bundle Contribution
+      additionalProperties: false
+      type: object
+      required:
+      - candidate_id
+      - evidence_id
+      - reason
+      title: Assessment
+    AssessmentsUpdate:
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1.0
+          title: Expected Version
+        payload:
+          $ref: '#/components/schemas/Assessment'
+      additionalProperties: false
+      type: object
+      required:
+      - expected_version
+      - payload
+      title: AssessmentsUpdate
+    Body_upload_preview_api_v1_imports_preview_post:
+      properties:
+        file:
+          type: string
+          contentMediaType: application/octet-stream
+          title: File
+        source_id:
+          type: string
+          title: Source Id
+        kind:
+          type: string
+          title: Kind
+        sheet:
+          type: string
+          title: Sheet
+          default: ''
+      type: object
+      required:
+      - file
+      - source_id
+      - kind
+      title: Body_upload_preview_api_v1_imports_preview_post
+    Candidate:
+      properties:
+        sku_id:
+          type: string
+          title: Sku Id
+        keyword_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Keyword Id
+        primary_offer_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Primary Offer Id
+        backup_offer_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Backup Offer Id
+        note:
+          type: string
+          title: Note
+          default: ''
+      additionalProperties: false
+      type: object
+      required:
+      - sku_id
+      title: Candidate
+    CandidatesUpdate:
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1.0
+          title: Expected Version
+        payload:
+          $ref: '#/components/schemas/Candidate'
+      additionalProperties: false
+      type: object
+      required:
+      - expected_version
+      - payload
+      title: CandidatesUpdate
+    Cashflow:
+      properties:
+        daily_orders:
+          anyOf:
+          - type: number
+            minimum: 0.0
+          - type: string
+          title: Daily Orders
+        upfront_cost:
+          type: string
+          pattern: ^\d+(\.\d{1,4})?$
+          title: Upfront Cost
+        settlement_days:
+          type: integer
+          minimum: 0.0
+          title: Settlement Days
+        refund_reserve:
+          type: string
+          pattern: ^\d+(\.\d{1,4})?$
+          title: Refund Reserve
+        advertising_budget:
+          type: string
+          pattern: ^\d+(\.\d{1,4})?$
+          title: Advertising Budget
+      additionalProperties: false
+      type: object
+      required:
+      - daily_orders
+      - upfront_cost
+      - settlement_days
+      - refund_reserve
+      - advertising_budget
+      title: Cashflow
+    EntityOut:
+      properties:
+        id:
+          type: string
+          title: Id
+        workspace:
+          type: string
+          title: Workspace
+        kind:
+          type: string
+          title: Kind
+        version:
+          type: integer
+          title: Version
+        data:
+          additionalProperties: true
+          type: object
+          title: Data
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+        updated_at:
+          type: string
+          format: date-time
+          title: Updated At
+      type: object
+      required:
+      - id
+      - workspace
+      - kind
+      - version
+      - data
+      - created_at
+      - updated_at
+      title: EntityOut
+    EntityPage:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/EntityOut'
+          type: array
+          title: Items
+        total:
+          type: integer
+          title: Total
+        page:
+          type: integer
+          title: Page
+        page_size:
+          type: integer
+          title: Page Size
+      type: object
+      required:
+      - items
+      - total
+      - page
+      - page_size
+      title: EntityPage
+    Evidence:
+      properties:
+        source_id:
+          type: string
+          title: Source Id
+        locator:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Locator
+        observed_at:
+          type: string
+          format: date-time
+          title: Observed At
+        expires_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Expires At
+        quality_flag:
+          type: string
+          enum:
+          - valid
+          - conflict
+          - rejected
+          title: Quality Flag
+          default: valid
+        precision:
+          type: string
+          enum:
+          - exact
+          - lower_bound
+          - range
+          - estimate
+          - unknown
+          title: Precision
+          default: exact
+        note:
+          type: string
+          maxLength: 3000
+          title: Note
+          default: ''
+      additionalProperties: false
+      type: object
+      required:
+      - source_id
+      - locator
+      - observed_at
+      title: Evidence
+    EvidenceUpdate:
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1.0
+          title: Expected Version
+        payload:
+          $ref: '#/components/schemas/Evidence'
+      additionalProperties: false
+      type: object
+      required:
+      - expected_version
+      - payload
+      title: EvidenceUpdate
+    Experiment:
+      properties:
+        candidate_id:
+          type: string
+          title: Candidate Id
+        start_at:
+          type: string
+          format: date-time
+          title: Start At
+        end_at:
+          type: string
+          format: date-time
+          title: End At
+        budget:
+          type: string
+          pattern: ^\d+(\.\d{1,4})?$
+          title: Budget
+        loss_limit:
+          type: string
+          pattern: ^\d+(\.\d{1,4})?$
+          title: Loss Limit
+        target_clicks:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Target Clicks
+          default: 100
+        hypothesis:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Hypothesis
+      additionalProperties: false
+      type: object
+      required:
+      - candidate_id
+      - start_at
+      - end_at
+      - budget
+      - loss_limit
+      - hypothesis
+      title: Experiment
+    ExperimentsUpdate:
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1.0
+          title: Expected Version
+        payload:
+          $ref: '#/components/schemas/Experiment'
+      additionalProperties: false
+      type: object
+      required:
+      - expected_version
+      - payload
+      title: ExperimentsUpdate
+    Funnel:
+      properties:
+        experiment_id:
+          type: string
+          title: Experiment Id
+        business_date:
+          type: string
+          pattern: ^\d{4}-\d{2}-\d{2}$
+          title: Business Date
+        channel:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Channel
+        impressions:
+          anyOf:
+          - type: integer
+            minimum: 0.0
+          - type: 'null'
+          title: Impressions
+        clicks:
+          anyOf:
+          - type: integer
+            minimum: 0.0
+          - type: 'null'
+          title: Clicks
+        paid_orders:
+          anyOf:
+          - type: integer
+            minimum: 0.0
+          - type: 'null'
+          title: Paid Orders
+        ad_spend:
+          anyOf:
+          - type: string
+            pattern: ^\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: Ad Spend
+        evidence_id:
+          type: string
+          title: Evidence Id
+      additionalProperties: false
+      type: object
+      required:
+      - experiment_id
+      - business_date
+      - channel
+      - evidence_id
+      title: Funnel
+    FunnelsUpdate:
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1.0
+          title: Expected Version
+        payload:
+          $ref: '#/components/schemas/Funnel'
+      additionalProperties: false
+      type: object
+      required:
+      - expected_version
+      - payload
+      title: FunnelsUpdate
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    ImportConfirm:
+      properties:
+        mapping:
+          additionalProperties:
+            type: string
+          type: object
+          title: Mapping
+        defaults:
+          additionalProperties: true
+          type: object
+          title: Defaults
+        timezone:
+          type: string
+          title: Timezone
+          default: Asia/Shanghai
+        percent_unit:
+          type: string
+          title: Percent Unit
+          default: fraction
+      additionalProperties: false
+      type: object
+      required:
+      - mapping
+      title: ImportConfirm
+    Keyword:
+      properties:
+        source_id:
+          type: string
+          title: Source Id
+        evidence_id:
+          type: string
+          title: Evidence Id
+        keyword:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Keyword
+        category:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Category
+        window_start:
+          type: string
+          format: date-time
+          title: Window Start
+        window_end:
+          type: string
+          format: date-time
+          title: Window End
+        observed_at:
+          type: string
+          format: date-time
+          title: Observed At
+        metric_definition:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Metric Definition
+          default: search_index
+        search_index:
+          anyOf:
+          - type: number
+            minimum: 0.0
+          - type: string
+          - type: 'null'
+          title: Search Index
+        listing_count:
+          anyOf:
+          - type: integer
+            minimum: 0.0
+          - type: 'null'
+          title: Listing Count
+        conversion:
+          anyOf:
+          - type: number
+            maximum: 1.0
+            minimum: 0.0
+          - type: string
+          - type: 'null'
+          title: Conversion
+        mall_click_share:
+          anyOf:
+          - type: number
+            maximum: 1.0
+            minimum: 0.0
+          - type: string
+          - type: 'null'
+          title: Mall Click Share
+      additionalProperties: false
+      type: object
+      required:
+      - source_id
+      - evidence_id
+      - keyword
+      - category
+      - window_start
+      - window_end
+      - observed_at
+      title: Keyword
+    KeywordsUpdate:
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1.0
+          title: Expected Version
+        payload:
+          $ref: '#/components/schemas/Keyword'
+      additionalProperties: false
+      type: object
+      required:
+      - expected_version
+      - payload
+      title: KeywordsUpdate
+    Listing:
+      properties:
+        platform:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Platform
+        external_id:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: External Id
+        external_sku_id:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: External Sku Id
+        title:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Title
+        url:
+          type: string
+          maxLength: 2000
+          pattern: ^(https?://[^\s]+)?$
+          title: Url
+          default: ''
+        quantity:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Quantity
+        attributes:
+          additionalProperties:
+            type: string
+          type: object
+          title: Attributes
+      additionalProperties: false
+      type: object
+      required:
+      - platform
+      - external_id
+      - external_sku_id
+      - title
+      - quantity
+      title: Listing
+    ListingsUpdate:
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1.0
+          title: Expected Version
+        payload:
+          $ref: '#/components/schemas/Listing'
+      additionalProperties: false
+      type: object
+      required:
+      - expected_version
+      - payload
+      title: ListingsUpdate
+    Login:
+      properties:
+        password:
+          type: string
+          maxLength: 300
+          minLength: 1
+          title: Password
+      additionalProperties: false
+      type: object
+      required:
+      - password
+      title: Login
+    Match:
+      properties:
+        listing_id:
+          type: string
+          title: Listing Id
+        sku_id:
+          type: string
+          title: Sku Id
+        evidence_id:
+          type: string
+          title: Evidence Id
+        reason:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Reason
+      additionalProperties: false
+      type: object
+      required:
+      - listing_id
+      - sku_id
+      - evidence_id
+      - reason
+      title: Match
+    MatchReview:
+      properties:
+        state:
+          type: string
+          enum:
+          - MATCHED
+          - REJECTED
+          - ALTERNATIVE
+          title: State
+        evidence_id:
+          type: string
+          title: Evidence Id
+        reason:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Reason
+        expected_version:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Expected Version
+      additionalProperties: false
+      type: object
+      required:
+      - state
+      - evidence_id
+      - reason
+      - expected_version
+      title: MatchReview
+    MatchesUpdate:
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1.0
+          title: Expected Version
+        payload:
+          $ref: '#/components/schemas/Match'
+      additionalProperties: false
+      type: object
+      required:
+      - expected_version
+      - payload
+      title: MatchesUpdate
+    Offer:
+      properties:
+        supplier_id:
+          type: string
+          title: Supplier Id
+        sku_id:
+          type: string
+          title: Sku Id
+        evidence_id:
+          type: string
+          title: Evidence Id
+        dropship:
+          type: boolean
+          title: Dropship
+        quantity:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Quantity
+        unit_cost:
+          type: string
+          pattern: ^\d+(\.\d{1,4})?$
+          title: Unit Cost
+        shipping:
+          anyOf:
+          - type: string
+            pattern: ^\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: Shipping
+        service_fee:
+          anyOf:
+          - type: string
+            pattern: ^\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: Service Fee
+        currency:
+          type: string
+          const: CNY
+          title: Currency
+          default: CNY
+        region:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Region
+        lead_hours:
+          type: integer
+          minimum: 0.0
+          title: Lead Hours
+        expires_at:
+          type: string
+          format: date-time
+          title: Expires At
+        return_terms:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Return Terms
+        verified:
+          type: boolean
+          title: Verified
+          default: false
+      additionalProperties: false
+      type: object
+      required:
+      - supplier_id
+      - sku_id
+      - evidence_id
+      - dropship
+      - quantity
+      - unit_cost
+      - region
+      - lead_hours
+      - expires_at
+      - return_terms
+      title: Offer
+    OffersUpdate:
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1.0
+          title: Expected Version
+        payload:
+          $ref: '#/components/schemas/Offer'
+      additionalProperties: false
+      type: object
+      required:
+      - expected_version
+      - payload
+      title: OffersUpdate
+    Order:
+      properties:
+        source_id:
+          type: string
+          title: Source Id
+        evidence_id:
+          type: string
+          title: Evidence Id
+        experiment_id:
+          type: string
+          title: Experiment Id
+        external_order_id:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: External Order Id
+        line_id:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Line Id
+        paid_at:
+          type: string
+          format: date-time
+          title: Paid At
+        channel:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Channel
+        quantity:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Quantity
+          default: 1
+        revenue:
+          type: string
+          pattern: ^\d+(\.\d{1,4})?$
+          title: Revenue
+        customer_refund:
+          type: string
+          pattern: ^\d+(\.\d{1,4})?$
+          title: Customer Refund
+          default: '0'
+        purchase:
+          anyOf:
+          - type: string
+            pattern: ^\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: Purchase
+        purchase_refund:
+          anyOf:
+          - type: string
+            pattern: ^\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: Purchase Refund
+        shipping:
+          anyOf:
+          - type: string
+            pattern: ^\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: Shipping
+        packaging:
+          anyOf:
+          - type: string
+            pattern: ^\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: Packaging
+        net_fees:
+          anyOf:
+          - type: string
+            pattern: ^-?\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: Net Fees
+        advertising:
+          anyOf:
+          - type: string
+            pattern: ^\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: Advertising
+        other_net_cost:
+          anyOf:
+          - type: string
+            pattern: ^-?\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: Other Net Cost
+        mature:
+          type: boolean
+          title: Mature
+          default: false
+        settled:
+          type: boolean
+          title: Settled
+          default: false
+        note:
+          type: string
+          title: Note
+          default: ''
+      additionalProperties: false
+      type: object
+      required:
+      - source_id
+      - evidence_id
+      - experiment_id
+      - external_order_id
+      - line_id
+      - paid_at
+      - channel
+      - revenue
+      title: Order
+    OrdersUpdate:
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1.0
+          title: Expected Version
+        payload:
+          $ref: '#/components/schemas/Order'
+      additionalProperties: false
+      type: object
+      required:
+      - expected_version
+      - payload
+      title: OrdersUpdate
+    Price:
+      properties:
+        listing_id:
+          type: string
+          title: Listing Id
+        evidence_id:
+          type: string
+          title: Evidence Id
+        observed_at:
+          type: string
+          format: date-time
+          title: Observed At
+        price_kind:
+          type: string
+          enum:
+          - LIST
+          - ELIGIBLE
+          - DROPSHIP
+          - WHOLESALE
+          title: Price Kind
+          default: LIST
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+          title: Currency
+          default: CNY
+        region:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Region
+        quantity:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Quantity
+        price:
+          type: string
+          pattern: ^\d+(\.\d{1,4})?$
+          title: Price
+        shipping:
+          anyOf:
+          - type: string
+            pattern: ^\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: Shipping
+        conditions:
+          type: string
+          title: Conditions
+          default: ''
+        eligibility_verified:
+          type: boolean
+          title: Eligibility Verified
+          default: false
+      additionalProperties: false
+      type: object
+      required:
+      - listing_id
+      - evidence_id
+      - observed_at
+      - region
+      - quantity
+      - price
+      title: Price
+    PricesUpdate:
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1.0
+          title: Expected Version
+        payload:
+          $ref: '#/components/schemas/Price'
+      additionalProperties: false
+      type: object
+      required:
+      - expected_version
+      - payload
+      title: PricesUpdate
+    Product:
+      properties:
+        name:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Name
+        category:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Category
+        brand:
+          type: string
+          title: Brand
+          default: ''
+      additionalProperties: false
+      type: object
+      required:
+      - name
+      - category
+      title: Product
+    ProductsUpdate:
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1.0
+          title: Expected Version
+        payload:
+          $ref: '#/components/schemas/Product'
+      additionalProperties: false
+      type: object
+      required:
+      - expected_version
+      - payload
+      title: ProductsUpdate
+    Profit:
+      properties:
+        p:
+          type: string
+          pattern: ^\d+(\.\d{1,4})?$
+          title: P
+        c:
+          type: string
+          pattern: ^\d+(\.\d{1,4})?$
+          title: C
+        f:
+          type: string
+          pattern: ^\d+(\.\d{1,4})?$
+          title: F
+        b:
+          type: string
+          pattern: ^\d+(\.\d{1,4})?$
+          title: B
+        t:
+          type: string
+          pattern: ^\d+(\.\d{1,4})?$
+          title: T
+        a:
+          type: string
+          pattern: ^\d+(\.\d{1,4})?$
+          title: A
+        r:
+          anyOf:
+          - type: number
+            maximum: 1.0
+            minimum: 0.0
+          - type: string
+          title: R
+        l:
+          type: string
+          pattern: ^\d+(\.\d{1,4})?$
+          title: L
+        candidate_id:
+          type: string
+          title: Candidate Id
+        evidence_id:
+          type: string
+          title: Evidence Id
+        label:
+          type: string
+          enum:
+          - NORMAL
+          - STRESS
+          title: Label
+        note:
+          type: string
+          title: Note
+          default: ''
+      additionalProperties: false
+      type: object
+      required:
+      - p
+      - c
+      - f
+      - b
+      - t
+      - a
+      - r
+      - l
+      - candidate_id
+      - evidence_id
+      - label
+      title: Profit
+    ProfitInput:
+      properties:
+        p:
+          type: string
+          pattern: ^\d+(\.\d{1,4})?$
+          title: P
+        c:
+          type: string
+          pattern: ^\d+(\.\d{1,4})?$
+          title: C
+        f:
+          type: string
+          pattern: ^\d+(\.\d{1,4})?$
+          title: F
+        b:
+          type: string
+          pattern: ^\d+(\.\d{1,4})?$
+          title: B
+        t:
+          type: string
+          pattern: ^\d+(\.\d{1,4})?$
+          title: T
+        a:
+          type: string
+          pattern: ^\d+(\.\d{1,4})?$
+          title: A
+        r:
+          anyOf:
+          - type: number
+            maximum: 1.0
+            minimum: 0.0
+          - type: string
+          title: R
+        l:
+          type: string
+          pattern: ^\d+(\.\d{1,4})?$
+          title: L
+      additionalProperties: false
+      type: object
+      required:
+      - p
+      - c
+      - f
+      - b
+      - t
+      - a
+      - r
+      - l
+      title: ProfitInput
+    ProfitsUpdate:
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1.0
+          title: Expected Version
+        payload:
+          $ref: '#/components/schemas/Profit'
+      additionalProperties: false
+      type: object
+      required:
+      - expected_version
+      - payload
+      title: ProfitsUpdate
+    Risk:
+      properties:
+        candidate_id:
+          type: string
+          title: Candidate Id
+        evidence_id:
+          type: string
+          title: Evidence Id
+        risk_code:
+          type: string
+          enum:
+          - IP
+          - QUALIFICATION
+          - SAFETY
+          - FULFILLMENT
+          title: Risk Code
+        status:
+          type: string
+          enum:
+          - PENDING
+          - PASS
+          - BLOCKED
+          title: Status
+        reason:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Reason
+      additionalProperties: false
+      type: object
+      required:
+      - candidate_id
+      - evidence_id
+      - risk_code
+      - status
+      - reason
+      title: Risk
+    RisksUpdate:
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1.0
+          title: Expected Version
+        payload:
+          $ref: '#/components/schemas/Risk'
+      additionalProperties: false
+      type: object
+      required:
+      - expected_version
+      - payload
+      title: RisksUpdate
+    Sample:
+      properties:
+        offer_id:
+          type: string
+          title: Offer Id
+        evidence_id:
+          type: string
+          title: Evidence Id
+        result:
+          type: string
+          enum:
+          - PENDING
+          - PASSED
+          - FAILED
+          title: Result
+        reason:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Reason
+      additionalProperties: false
+      type: object
+      required:
+      - offer_id
+      - evidence_id
+      - result
+      - reason
+      title: Sample
+    SamplesUpdate:
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1.0
+          title: Expected Version
+        payload:
+          $ref: '#/components/schemas/Sample'
+      additionalProperties: false
+      type: object
+      required:
+      - expected_version
+      - payload
+      title: SamplesUpdate
+    ScoreRequest:
+      properties:
+        strategy_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Strategy Id
+      additionalProperties: false
+      type: object
+      title: ScoreRequest
+    Signal:
+      properties:
+        listing_id:
+          type: string
+          title: Listing Id
+        evidence_id:
+          type: string
+          title: Evidence Id
+        metric_kind:
+          type: string
+          enum:
+          - SOLD
+          - GROUP_BUY
+          - REVIEW_COUNT
+          - ESTIMATED_SALES
+          title: Metric Kind
+        unit:
+          type: string
+          enum:
+          - ORDERS
+          - ITEMS
+          - REVIEWS
+          title: Unit
+        raw_value:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Raw Value
+        value:
+          anyOf:
+          - type: number
+            minimum: 0.0
+          - type: string
+          - type: 'null'
+          title: Value
+        upper_value:
+          anyOf:
+          - type: number
+            minimum: 0.0
+          - type: string
+          - type: 'null'
+          title: Upper Value
+        precision:
+          type: string
+          enum:
+          - exact
+          - lower_bound
+          - range
+          - estimate
+          - unknown
+          title: Precision
+        observed_at:
+          type: string
+          format: date-time
+          title: Observed At
+        window_start:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Window Start
+        window_end:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Window End
+      additionalProperties: false
+      type: object
+      required:
+      - listing_id
+      - evidence_id
+      - metric_kind
+      - unit
+      - raw_value
+      - precision
+      - observed_at
+      title: Signal
+    SignalsUpdate:
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1.0
+          title: Expected Version
+        payload:
+          $ref: '#/components/schemas/Signal'
+      additionalProperties: false
+      type: object
+      required:
+      - expected_version
+      - payload
+      title: SignalsUpdate
+    Sku:
+      properties:
+        product_id:
+          type: string
+          title: Product Id
+        name:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Name
+        spec_key:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Spec Key
+        quantity:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Quantity
+        attributes:
+          additionalProperties:
+            type: string
+          type: object
+          title: Attributes
+      additionalProperties: false
+      type: object
+      required:
+      - product_id
+      - name
+      - spec_key
+      - quantity
+      title: Sku
+    SkusUpdate:
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1.0
+          title: Expected Version
+        payload:
+          $ref: '#/components/schemas/Sku'
+      additionalProperties: false
+      type: object
+      required:
+      - expected_version
+      - payload
+      title: SkusUpdate
+    Source:
+      properties:
+        name:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Name
+        platform:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Platform
+        permission_scope:
+          items:
+            type: string
+          type: array
+          minItems: 1
+          title: Permission Scope
+        permission_note:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Permission Note
+        enabled:
+          type: boolean
+          title: Enabled
+          default: true
+        expires_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Expires At
+        license:
+          type: string
+          title: License
+          default: ''
+        origin_url:
+          type: string
+          title: Origin Url
+          default: ''
+      additionalProperties: false
+      type: object
+      required:
+      - name
+      - platform
+      - permission_scope
+      - permission_note
+      title: Source
+    SourcesUpdate:
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1.0
+          title: Expected Version
+        payload:
+          $ref: '#/components/schemas/Source'
+      additionalProperties: false
+      type: object
+      required:
+      - expected_version
+      - payload
+      title: SourcesUpdate
+    StrategiesUpdate:
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1.0
+          title: Expected Version
+        payload:
+          $ref: '#/components/schemas/Strategy'
+      additionalProperties: false
+      type: object
+      required:
+      - expected_version
+      - payload
+      title: StrategiesUpdate
+    Strategy:
+      properties:
+        name:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Name
+        version:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Version
+        config:
+          additionalProperties: true
+          type: object
+          title: Config
+      additionalProperties: false
+      type: object
+      required:
+      - name
+      - version
+      - config
+      title: Strategy
+    Supplier:
+      properties:
+        name:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Name
+        platform:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Platform
+          default: '1688'
+        external_id:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: External Id
+        note:
+          type: string
+          title: Note
+          default: ''
+      additionalProperties: false
+      type: object
+      required:
+      - name
+      - external_id
+      title: Supplier
+    SuppliersUpdate:
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1.0
+          title: Expected Version
+        payload:
+          $ref: '#/components/schemas/Supplier'
+      additionalProperties: false
+      type: object
+      required:
+      - expected_version
+      - payload
+      title: SuppliersUpdate
+    Transaction:
+      properties:
+        source_id:
+          type: string
+          title: Source Id
+        evidence_id:
+          type: string
+          title: Evidence Id
+        invoice_no:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Invoice No
+        stock_code:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Stock Code
+        description:
+          type: string
+          title: Description
+          default: ''
+        quantity:
+          type: integer
+          title: Quantity
+        invoice_at:
+          type: string
+          format: date-time
+          title: Invoice At
+        unit_price:
+          type: string
+          pattern: ^\d+(\.\d{1,4})?$
+          title: Unit Price
+        currency:
+          type: string
+          const: GBP
+          title: Currency
+          default: GBP
+        country:
+          type: string
+          title: Country
+          default: ''
+        source_row:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Source Row
+      additionalProperties: false
+      type: object
+      required:
+      - source_id
+      - evidence_id
+      - invoice_no
+      - stock_code
+      - quantity
+      - invoice_at
+      - unit_price
+      - source_row
+      title: Transaction
+    TransactionsUpdate:
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1.0
+          title: Expected Version
+        payload:
+          $ref: '#/components/schemas/Transaction'
+      additionalProperties: false
+      type: object
+      required:
+      - expected_version
+      - payload
+      title: TransactionsUpdate
+    Transition:
+      properties:
+        target_state:
+          type: string
+          enum:
+          - DISCOVERED
+          - RESEARCHING
+          - READY_SAMPLE
+          - SAMPLE_PASSED
+          - READY_TEST
+          - TESTING
+          - SCALE
+          - HOLD
+          - REJECTED
+          - ARCHIVED
+          title: Target State
+        expected_version:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Expected Version
+        reason:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Reason
+        evidence_ids:
+          items:
+            type: string
+          type: array
+          title: Evidence Ids
+      additionalProperties: false
+      type: object
+      required:
+      - target_state
+      - expected_version
+      - reason
+      title: Transition
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: commerceai_session
+    csrfHeader:
+      type: apiKey
+      in: header
+      name: X-CSRF-Token

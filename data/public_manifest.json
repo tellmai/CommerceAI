@@ -1,0 +1,27 @@
+{
+  "dataset": "UCI Online Retail",
+  "creator": "Daqing Chen",
+  "year": 2015,
+  "doi": "10.24432/C5BW33",
+  "source": "https://archive.ics.uci.edu/dataset/352/online+retail",
+  "download_url": "https://archive.ics.uci.edu/static/public/352/online+retail.zip",
+  "license": "CC BY 4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/",
+  "sha256": "f5385cbb54bbebf7196389109c6b0621faab0c304e3702548165e71c84aede8b",
+  "prepared_at": "2026-11-17T09:19:33.486552+00:00",
+  "currency": "GBP",
+  "source_timezone": "Europe/London",
+  "accepted": 5000,
+  "rejected": 0,
+  "quantity": 45929,
+  "amount": "102189.24",
+  "unmatched_cancellations": 72,
+  "customer_identifiers": "not retained",
+  "batches": [
+    {
+      "file": "uci-001.csv",
+      "rows": 5000,
+      "sha256": "3c60bfaa4f1f76896ea771241810b85d769c2d3a5928773411363b0a77659b60"
+    }
+  ]
+}

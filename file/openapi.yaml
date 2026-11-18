@@ -1,0 +1,251 @@
+openapi: 3.0.3
+info:
+  title: Commerce Intelligence Internal API (MVP draft)
+  version: 1.0.0
+  description: Internal API only; not a platform API. All data is permission-scoped; write operations audited.
+servers:
+  - url: /api/v1
+security:
+  - bearerAuth: []
+paths:
+  /imports:
+    post:
+      operationId: createImport
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file, source_id, mapping_version]
+              properties:
+                file: {type: string, format: binary}
+                source_id: {type: string, format: uuid}
+                mapping_version: {type: string}
+      responses:
+        '202': {$ref: '#/components/responses/JobAccepted'}
+        '422': {$ref: '#/components/responses/Error'}
+  /jobs/{job_id}:
+    get:
+      operationId: getJob
+      parameters:
+        - {name: job_id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        '200':
+          description: Job state and error details
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Job'}
+  /candidates:
+    get:
+      operationId: listCandidates
+      parameters:
+        - {name: category, in: query, schema: {type: string}}
+        - {name: state, in: query, schema: {type: string}}
+        - {name: page, in: query, schema: {type: integer, minimum: 1, default: 1}}
+        - {name: page_size, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}
+      responses:
+        '200':
+          description: Paged candidates
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, total]
+                properties:
+                  items: {type: array, items: {$ref: '#/components/schemas/Candidate'}}
+                  total: {type: integer, minimum: 0}
+    post:
+      operationId: createCandidate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [canonical_sku_id]
+              properties:
+                canonical_sku_id: {type: string, format: uuid}
+      responses:
+        '201':
+          description: Candidate created
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Candidate'}
+  /candidates/{candidate_id}/score:
+    post:
+      operationId: runScore
+      parameters:
+        - $ref: '#/components/parameters/CandidateId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [strategy_version_id, evidence_ids]
+              properties:
+                strategy_version_id: {type: string, format: uuid}
+                evidence_ids: {type: array, items: {type: string, format: uuid}}
+      responses:
+        '202': {$ref: '#/components/responses/JobAccepted'}
+        '422': {$ref: '#/components/responses/Error'}
+  /candidates/{candidate_id}/transition:
+    post:
+      operationId: transitionCandidate
+      parameters:
+        - $ref: '#/components/parameters/CandidateId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [target_state, expected_version, reason, evidence_ids]
+              properties:
+                target_state: {$ref: '#/components/schemas/State'}
+                expected_version: {type: integer, minimum: 1}
+                reason: {type: string, minLength: 1}
+                evidence_ids: {type: array, items: {type: string, format: uuid}}
+      responses:
+        '200':
+          description: Updated candidate
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Candidate'}
+        '409': {$ref: '#/components/responses/Error'}
+  /sku-matches/{match_id}/review:
+    post:
+      operationId: reviewSkuMatch
+      parameters:
+        - {name: match_id, in: path, required: true, schema: {type: string, format: uuid}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [state, evidence_id, reason]
+              properties:
+                state: {type: string, enum: [MATCHED, REJECTED, ALTERNATIVE]}
+                evidence_id: {type: string, format: uuid}
+                reason: {type: string, minLength: 1}
+      responses:
+        '204': {description: Reviewed}
+        '409': {$ref: '#/components/responses/Error'}
+  /profit/calculate:
+    post:
+      operationId: calculateProfit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/ProfitInput'}
+      responses:
+        '200':
+          description: Deterministic contribution result
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ProfitResult'}
+        '422': {$ref: '#/components/responses/Error'}
+  /experiments:
+    post:
+      operationId: createExperiment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [candidate_id, start_at, end_at, budget, hypothesis]
+              properties:
+                candidate_id: {type: string, format: uuid}
+                start_at: {type: string, format: date-time}
+                end_at: {type: string, format: date-time}
+                budget: {$ref: '#/components/schemas/Money'}
+                hypothesis: {type: string, minLength: 1}
+      responses:
+        '201':
+          description: Experiment created after gate and approval validation
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [experiment_id]
+                properties:
+                  experiment_id: {type: string, format: uuid}
+        '409': {$ref: '#/components/responses/Error'}
+components:
+  securitySchemes:
+    bearerAuth: {type: http, scheme: bearer}
+  parameters:
+    CandidateId: {name: candidate_id, in: path, required: true, schema: {type: string, format: uuid}}
+  responses:
+    JobAccepted:
+      description: Job accepted; poll /jobs/{job_id}
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/Job'}
+    Error:
+      description: Structured validation or business error
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/Error'}
+  schemas:
+    Money:
+      type: string
+      pattern: '^\d+(\.\d{1,4})?$'
+      example: '39.90'
+    SignedMoney:
+      type: string
+      pattern: '^-?\d+(\.\d{1,4})?$'
+      example: '-1.00'
+    State:
+      type: string
+      enum: [DISCOVERED, RESEARCHING, READY_SAMPLE, SAMPLE_PASSED, READY_TEST, TESTING, SCALE, HOLD, REJECTED, ARCHIVED]
+    Candidate:
+      type: object
+      required: [id, canonical_sku_id, state, version, gate]
+      properties:
+        id: {type: string, format: uuid}
+        canonical_sku_id: {type: string, format: uuid}
+        state: {$ref: '#/components/schemas/State'}
+        version: {type: integer, minimum: 1}
+        gate: {type: string, enum: [PASS, BLOCKED, NEEDS_EVIDENCE]}
+        score: {type: number, nullable: true, minimum: 0, maximum: 100}
+        coverage: {type: number, nullable: true, minimum: 0, maximum: 1}
+    Job:
+      type: object
+      required: [id, status]
+      properties:
+        id: {type: string, format: uuid}
+        status: {type: string, enum: [QUEUED, RUNNING, SUCCEEDED, FAILED, CANCELLED]}
+        result: {type: object, nullable: true, additionalProperties: true}
+        error_code: {type: string, nullable: true}
+    ProfitInput:
+      type: object
+      required: [p, c, f, b, t, a, r, l]
+      properties:
+        p: {$ref: '#/components/schemas/Money'}
+        c: {$ref: '#/components/schemas/Money'}
+        f: {$ref: '#/components/schemas/Money'}
+        b: {$ref: '#/components/schemas/Money'}
+        t: {$ref: '#/components/schemas/Money'}
+        a: {$ref: '#/components/schemas/Money'}
+        r: {type: number, minimum: 0, maximum: 1}
+        l: {$ref: '#/components/schemas/Money'}
+    ProfitResult:
+      type: object
+      required: [contribution, max_cac]
+      properties:
+        contribution: {$ref: '#/components/schemas/SignedMoney'}
+        max_cac: {$ref: '#/components/schemas/SignedMoney'}
+        contribution_rate: {type: number, nullable: true}
+    Error:
+      type: object
+      required: [code, message, request_id]
+      properties:
+        code: {type: string}
+        message: {type: string}
+        request_id: {type: string}
+        details: {type: object, additionalProperties: true}

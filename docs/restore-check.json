@@ -1,0 +1,30 @@
+{
+  "database": "commerceai_restorecheck",
+  "counts": {
+    "suppliers": 2,
+    "transactions": 5000,
+    "candidates": 4,
+    "offers": 8,
+    "scores": 4,
+    "funnels": 1,
+    "strategies": 3,
+    "sources": 2,
+    "orders": 3,
+    "assessments": 4,
+    "samples": 6,
+    "profits": 8,
+    "evidence": 2,
+    "keywords": 240,
+    "experiments": 1,
+    "skus": 4,
+    "prices": 24,
+    "matches": 24,
+    "risks": 16,
+    "products": 4,
+    "listings": 24
+  },
+  "active_sessions": 0,
+  "evidence_files": 13,
+  "restored_storage": "/home/yang/Project/kaoP/CommerceAI/.local/restored/tmpv29ai74a/storage",
+  "database_checksum_verified": true
+}

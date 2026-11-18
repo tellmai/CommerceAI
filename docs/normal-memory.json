@@ -1,0 +1,13 @@
+{
+  "measured_at": "2026-11-17T10:52:29.766356+00:00",
+  "seconds": 30,
+  "samples": 140,
+  "activity": "Browser: experiment detail and profit calculator with page navigation",
+  "metric": "PSS MiB, native Linux processes; excludes browser, build and OS file cache",
+  "peak_mib": {
+    "api": 73.42,
+    "worker": 45.18,
+    "postgres": 25.46
+  },
+  "peak_total_mib": 144.06
+}
