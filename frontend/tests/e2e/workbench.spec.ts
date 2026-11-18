@@ -8,10 +8,10 @@ test.beforeEach(async({page})=>{
 })
 
 test('data spaces stay explicit and profit handles zero',async({page})=>{
-  await page.getByRole('combobox',{name:'数据空间'}).click()
+  await page.getByRole('combobox',{name:'数据空间'}).press('ArrowDown')
   await page.getByRole('option',{name:'真实经营',exact:true}).click()
   await expect(page.getByText('仅使用你有权访问并核验的数据')).toBeVisible()
-  await page.getByRole('combobox',{name:'数据空间'}).click()
+  await page.getByRole('combobox',{name:'数据空间'}).press('ArrowDown')
   await page.getByRole('option',{name:'模拟演示',exact:true}).click()
   await page.getByRole('link',{name:'利润测算',exact:true}).click()
   await expect(page.locator('.hero-number')).toContainText('10.75')
@@ -27,12 +27,12 @@ test('preview mapping, one valid row and one rejected row',async({page})=>{
   const name='CI浏览器来源-'+Date.now()
   await dialog.getByLabel('名称',{exact:true}).fill(name)
   await dialog.getByLabel('平台',{exact:true}).fill('TEST')
-  await dialog.getByLabel('允许的数据类型',{exact:true}).click()
+  await dialog.getByLabel('允许的数据类型',{exact:true}).press('ArrowDown')
   await page.getByRole('option',{name:'全部数据类型',exact:true}).click()
   await dialog.getByLabel('使用权限说明',{exact:true}).fill('合成数据自动化演练')
   await dialog.getByRole('button',{name:'保存记录',exact:true}).click()
   await expect(dialog).toBeHidden()
-  await page.getByRole('combobox',{name:'已登记的数据来源'}).click()
+  await page.getByRole('combobox',{name:'已登记的数据来源'}).press('ArrowDown')
   await page.getByRole('option',{name,exact:true}).click()
   const stamp=new Date(Date.now()-60000),end=new Date(stamp);end.setUTCHours(0,0,0,0)
   const start=new Date(end.getTime()-7*86400000)
@@ -55,7 +55,7 @@ test('preview mapping, one valid row and one rejected row',async({page})=>{
 
 test('candidate research exposes score, strategy and excluded prices',async({page})=>{
   await page.getByRole('link',{name:'选品中心',exact:true}).click()
-  await page.getByRole('button',{name:'研究详情',exact:true}).first().click()
+  await page.getByRole('row').filter({hasText:'模型工具整理架 10只装'}).getByRole('button',{name:'研究详情',exact:true}).click()
   const drawer=page.getByRole('dialog')
   await expect(drawer.getByRole('tab',{name:'历史版本'})).toBeVisible()
   await expect(drawer.getByRole('heading',{name:'同规格零售价格带'})).toBeVisible()

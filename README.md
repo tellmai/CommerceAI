@@ -21,7 +21,7 @@ bash scripts/start.sh
 bash scripts/stop.sh
 ```
 
-未安装 Docker 时，可由本机管理员运行 `sudo bash scripts/install-docker.sh`。脚本使用 Docker 官方 Ubuntu 软件源，不修改用户组权限。此电脑当前没有免密管理员权限，因此系统 Docker 尚未安装；已采用原生 PostgreSQL 路径完成实际开发和验收。Compose 配置及安装脚本已提供，容器启动需安装后验证。
+未安装 Docker 时，可由本机管理员运行 `sudo bash scripts/install-docker.sh`。脚本使用 Docker 官方 Ubuntu 软件源，不修改用户组权限。此电脑当前没有免密管理员权限，因此系统 Docker 尚未安装；已采用原生 PostgreSQL 路径完成实际开发和验收。Compose 四个服务的构建、启动、登录及备份恢复已在 [GitHub CI](https://github.com/tellmai/CommerceAI/actions/runs/44220265618) 验证；当前电脑的容器资源实测需安装后进行。
 
 ### 无 Docker 的本机模式
 
