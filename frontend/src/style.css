@@ -13,6 +13,10 @@
 @media(max-width:1280px){.market-quote-grid{grid-template-columns:1fr}.market-query{flex-wrap:wrap}.market-query>.el-form-item:first-child{min-width:240px}}
 .market-manual-quote{border:1px solid var(--el-border-color);border-radius:8px;padding:16px;margin-bottom:16px}
 .market-manual-quote .panel-heading{margin-bottom:16px}
+.quote-tier{display:grid;grid-template-columns:120px minmax(100px,1fr) auto;gap:8px;width:100%;margin-bottom:8px}
+.candidate-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.candidate-drafts{padding:14px 16px;border:1px solid var(--el-border-color);border-radius:8px}
+.candidate-drafts h3{margin-bottom:12px}
 .opportunity-search{max-width:260px}
 .forecast-buttons{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
 .forecast-buttons .el-button+.el-button{margin-left:0}

@@ -4,8 +4,9 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Plus, Download, Refresh, ArrowRight, Search } from '@element-plus/icons-vue'
 import { request, post, refresh, openEditor, referenceKinds, entityName, pretty, amount, download, type Entity } from '../api/client'
-import { resources, labels, stateLabel, tagType, transitions } from '../catalog'
+import { procurementLabel, resources, labels, stateLabel, tagType, transitions } from '../catalog'
 import RefSelect from '../components/RefSelect.vue'
+import ForecastReview from '../components/ForecastReview.vue'
 const props=defineProps<{resourceKind?:string,embedded?:boolean}>()
 const route=useRoute(),router=useRouter()
 const kind=computed(()=>props.resourceKind||String(route.params.kind||'candidates'))
@@ -33,9 +34,10 @@ async function resolveLabels(records:Entity[]){
   await Promise.all(pending)
 }
 function display(key:string,value:any){
+  if(key==='procurement_mode')return procurementLabel(value || 'DROPSHIP')
   if(value===null||value===undefined)return '待核验'
   if(referenceKinds[key])return labelCache.value[value]||'正在读取…'
-  if(['conversion','mall_click_share','r','head_share'].includes(key))return (Number(value)*100).toFixed(1)+'%'
+  if(['conversion','mall_click_share','r','head_share','fee_rate'].includes(key))return (Number(value)*100).toFixed(1)+'%'
   if(['p','c','a','price','shipping','unit_cost','budget','ad_spend','revenue','customer_refund','unit_price'].includes(key))return amount(value)
   if(typeof value==='boolean')return value?'是':'否'
   if(typeof value==='string'&&/^\d{4}-\d\d-\d\dT/.test(value))return new Date(value).toLocaleString('zh-CN',{hour12:false})
@@ -114,13 +116,31 @@ watch(()=>route.query.open,async id=>{if(id&&!props.embedded){try{await inspect(
     <el-table-column label="操作" fixed="right" width="150"><template #default="{row}"><el-button link type="primary" @click="inspect(row)">{{kind==='candidates'?'研究详情':'查看'}}</el-button><el-button v-if="!definition.immutable" link @click="openEditor(kind,{},row)">修改</el-button></template></el-table-column>
   </el-table><div class="table-bottom"><span>{{total.toLocaleString()}} 条记录 · 数据空间独立</span><el-pagination v-model:current-page="page" :page-size="20" :total="total" layout="prev,pager,next" @current-change="load"/></div></section>
   <el-drawer :model-value="!!selected" @close="selected=null" size="min(1000px, 92vw)" :title="selected?entityName(selected):''" destroy-on-close>
-    <template v-if="selected"><div class="drawer-toolbar"><el-tag effect="plain">版本 {{selected.version}}</el-tag><el-tag v-if="selected.data.state" :type="tagType(selected.data.state)">{{stateLabel(selected.data.state)}}</el-tag><div class="spacer"/><el-button v-if="kind==='candidates'" @click="score" :loading="actionBusy">重新评分</el-button><el-button v-if="kind==='candidates'" type="primary" @click="startTransition">推进阶段</el-button><el-button v-if="kind==='matches'" type="primary" @click="matchOpen=true;evidence=selected.data.evidence_id;reason='';actionError=''">审核同款</el-button><el-button v-if="kind==='experiments'" @click="allocate">分摊广告费</el-button></div>
+    <template v-if="selected"><div class="drawer-toolbar"><el-tag effect="plain">版本 {{selected.version}}</el-tag><el-tag v-if="selected.data.state" :type="tagType(selected.data.state)">{{stateLabel(selected.data.state)}}</el-tag><div class="spacer"/><el-button v-if="kind==='candidates'" @click="score" :loading="actionBusy">重新评分</el-button><el-button v-if="kind==='candidates'" type="primary" @click="startTransition">推进阶段</el-button><el-button v-if="kind==='matches'" type="primary" @click="matchOpen=true;evidence=selected.data.evidence_id;reason='';actionError=''">审核同款</el-button><el-button v-if="kind==='experiments'" @click="allocate">分摊广告费</el-button><el-button v-if="kind==='experiments' && selected.data.status==='PLANNED'" @click="openEditor('experiments',{}, selected)">修改测款计划</el-button></div>
     <el-alert v-if="actionError" :title="actionError" type="error" :closable="false" class="mb16"/>
     <el-tabs v-model="drawerTab"><el-tab-pane label="研究概览" name="overview">
       <template v-if="research?.requirements"><el-alert :title="stateLabel(research.requirements.gate)" :description="[...research.requirements.blocked,...research.requirements.missing].join('；')||'当前有效证据已满足测款审核条件'" :type="research.requirements.gate==='PASS'?'success':research.requirements.gate==='BLOCKED'?'error':'warning'" :closable="false" show-icon class="mb16"/>
+      <div class="mb16 candidate-actions">
+        <span><strong>{{procurementLabel(selected.data.procurement_mode || 'DROPSHIP')}}</strong> · {{research.requirements.gate==='PASS'?'符合测款审核条件':research.buy_sample_requirements?.gate==='PASS'?'具备买样审核条件':'请先补齐主供报价和核验证据'}}</span>
+        <el-button link @click="openEditor('candidates',{}, selected)">编辑采购方式与主备</el-button>
+        <el-button link @click="router.push({path:'/opportunities',query:{candidate:selected.id}})">定价与预测</el-button>
+      </div>
+      <section v-if="research.market_drafts?.length" class="candidate-drafts mb16">
+        <h3>来自比价报告的供货与成本草稿</h3>
+        <el-collapse>
+          <el-collapse-item v-for="draft in research.market_drafts" :key="draft.report_id" :title="draft.supply_title" :name="draft.report_id">
+            <p class="muted mb16">{{procurementLabel(draft.mode)}} · {{draft.stale_reason || '可带入已填报价，待补供应商、服务费、交期与核验。'}}</p>
+            <el-button link @click="router.push({path:'/discover',query:{report:draft.report_id}})">查看来源报告</el-button>
+            <el-button v-if="draft.offer" link type="primary" @click="openEditor('offers',draft.offer)">填写供货报价</el-button>
+            <el-button v-if="draft.normal" link @click="openEditor('profits',draft.normal)">填写正常成本</el-button>
+            <el-button v-if="draft.stress" link @click="openEditor('profits',draft.stress)">填写压力成本</el-button>
+          </el-collapse-item>
+        </el-collapse>
+      </section>
       <el-alert v-if="research.score_stale" title="历史评分待核验" description="研究输入、策略或证据已更新或过期，请重新评分。历史结果仍可按原输入复算。" type="warning" :closable="false" show-icon class="mb16"/><div v-if="research.score" class="score-panel"><div><span class="eyebrow">综合研究评分</span><strong>{{research.score.data.score===null?'—':research.score.data.score.toFixed(1)}}<small>/100</small></strong><p>{{research.score.data.grade||'待核验'}} · 覆盖率 {{Math.round(research.score.data.coverage*100)}}%</p></div><div class="factor-list"><div v-for="(value,key) in research.score.data.factors" :key="key"><span>{{labels[key]||key}}</span><el-progress :percentage="value??0" :show-text="false" :color="value===null?'#dbe3de':'#29887c'"/><strong>{{value===null?'未知':Number(value).toFixed(0)}}</strong></div></div></div><p v-else class="muted">尚无评分，补充研究数据后可提交评分任务。</p></template>
       <div v-if="research?.strategies" class="strategy-grid"><div v-for="(value,key) in research.strategies" :key="key"><strong>{{stateLabel(key)}}</strong><el-tag :type="tagType(value)" effect="plain">{{stateLabel(value)}}</el-tag></div></div>
-      <div v-if="summary" class="experiment-result"><div class="mini-metrics"><div><span>广告支出 / 预算剩余</span><strong>¥{{amount(summary.ad_spend)}} / ¥{{amount(summary.remaining_budget)}}</strong></div><div><span>成熟贡献 / 订单</span><strong>¥{{amount(summary.mature_contribution)}} / {{summary.mature_orders}}</strong></div><div><span>未成熟 / 费用不完整</span><strong>{{summary.provisional_orders}} / {{summary.incomplete_orders}}</strong></div></div><el-alert :title="stateLabel(summary.recommendation)" :description="summary.pause_reasons.join('；')||'继续记录有效点击、成熟订单及实际费用，再进行人工复盘。'" :closable="false" type="info" class="mb16"/></div>
+      <div v-if="summary" class="experiment-result"><div class="mini-metrics"><div><span>广告支出 / 预算剩余</span><strong v-if="summary.ad_spend!=null">¥{{amount(summary.ad_spend)}} / ¥{{amount(summary.remaining_budget)}}</strong><strong v-else>待补支出</strong></div><div><span>成熟贡献 / 订单</span><strong>¥{{amount(summary.mature_contribution)}} / {{summary.mature_orders}}</strong></div><div><span>未成熟 / 费用不完整</span><strong>{{summary.provisional_orders}} / {{summary.incomplete_orders}}</strong></div></div><el-alert :title="stateLabel(summary.recommendation)" :description="summary.pause_reasons.join(' · ')||'继续记录有效点击、成熟订单及实际费用，再进行人工复盘。'" :closable="false" type="info" class="mb16"/></div>
+      <ForecastReview v-if="summary?.forecast_comparison" :comparison="summary.forecast_comparison" class="mb16" />
       <el-descriptions :column="2" border><el-descriptions-item v-for="column in Object.keys(selected.data).filter(k=>!k.startsWith('_')&&!['config','input_snapshot','records','result','score_run_id'].includes(k))" :key="column" :label="labels[column]||column">{{display(column,selected.data[column])}}</el-descriptions-item></el-descriptions>
       <div v-if="research?.comparisons" class="mt24"><h3>同规格零售价格带</h3><div class="mini-metrics"><div><span>有效报价</span><strong>{{research.comparisons.statistics.count}} 条</strong></div><div><span>零售中位价</span><strong>¥{{amount(research.comparisons.statistics.median)}}</strong></div><div><span>样本状态</span><strong>{{research.comparisons.statistics.sparse?'样本不足':'可比较'}}</strong></div></div><el-table :data="research.comparisons.included"><el-table-column prop="platform" label="平台"/><el-table-column prop="title" label="商品"/><el-table-column prop="total" label="到手价"/></el-table><h4 v-if="research.comparisons.excluded.length" class="mt24">排除的报价</h4><el-table :data="research.comparisons.excluded"><el-table-column prop="title" label="商品"/><el-table-column prop="reason" label="排除原因"/></el-table></div>
     </el-tab-pane>

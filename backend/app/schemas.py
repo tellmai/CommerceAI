@@ -1,4 +1,4 @@
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from decimal import Decimal
 from typing import Annotated, Literal
 
@@ -10,6 +10,7 @@ from pydantic import (
     PlainSerializer,
     WithJsonSchema,
     model_validator,
+    field_validator,
 )
 
 
@@ -34,6 +35,8 @@ SignedMoney = Annotated[
 Ratio = Annotated[Decimal, Field(ge=0, le=1), PlainSerializer(float, return_type=float)]
 Rating = Annotated[Decimal, Field(ge=0, le=100), PlainSerializer(float, return_type=float)]
 Text = Annotated[str, Field(min_length=1, max_length=500)]
+ProcurementMode = Literal["STOCK", "DROPSHIP"]
+PositiveQuantity = Annotated[int, Field(gt=0, le=1000000)]
 State = Literal[
     "DISCOVERED",
     "RESEARCHING",
@@ -81,6 +84,7 @@ class Evidence(Contract):
     quality_flag: Literal["valid", "conflict", "rejected"] = "valid"
     precision: Literal["exact", "lower_bound", "range", "estimate", "unknown"] = "exact"
     note: str = Field(default="", max_length=3000)
+    market_report_id: str | None = None
 
 
 class Keyword(Contract):
@@ -197,17 +201,39 @@ class Offer(Contract):
     supplier_id: str
     sku_id: str
     evidence_id: str
-    dropship: bool
+    dropship: bool | None = None
+    procurement_mode: ProcurementMode | None = None
     quantity: Annotated[int, Field(gt=0)]
     unit_cost: Money
     shipping: Money | None = None
     service_fee: Money | None = None
+    supplier_pack: PositiveQuantity | None = None
+    min_order: PositiveQuantity | None = None
+    batch_quantity: PositiveQuantity | None = None
+    outbound_shipping: Money | None = None
     currency: Literal["CNY"] = "CNY"
     region: Text
     lead_hours: Annotated[int, Field(ge=0)]
     expires_at: datetime
     return_terms: Text
     verified: bool = False
+
+    @model_validator(mode="after")
+    def procurement(self):
+        legacy_dropship = self.procurement_mode is None and self.dropship is True
+        if self.procurement_mode is None:
+            if self.dropship is None:
+                raise ValueError("请选择采购方式")
+            self.procurement_mode = "DROPSHIP" if self.dropship else "STOCK"
+        if self.dropship is not None and self.dropship != (self.procurement_mode == "DROPSHIP"):
+            raise ValueError("报价的采购方式与代发条件不一致")
+        self.dropship = self.procurement_mode == "DROPSHIP"
+        if self.dropship and self.verified:
+            if legacy_dropship and self.min_order is None:
+                self.min_order = 1
+            if self.min_order != 1:
+                raise ValueError("核验代发报价时需确认一件起订")
+        return self
 
 
 class Sample(Contract):
@@ -219,6 +245,8 @@ class Sample(Contract):
 
 class Candidate(Contract):
     sku_id: str
+    procurement_mode: ProcurementMode = "DROPSHIP"
+    market_report_id: str | None = None
     keyword_id: str | None = None
     primary_offer_id: str | None = None
     backup_offer_id: str | None = None
@@ -231,6 +259,7 @@ class ProfitInput(Contract):
     f: Money
     b: Money
     t: Money
+    fee_rate: Ratio = 0
     a: Money
     r: Ratio
     l: Money
@@ -287,6 +316,7 @@ class Strategy(Contract):
 
 class Experiment(Contract):
     candidate_id: str
+    forecast_id: str | None = None
     start_at: datetime
     end_at: datetime
     budget: Money
@@ -310,6 +340,12 @@ class Funnel(Contract):
     paid_orders: Annotated[int, Field(ge=0)] | None = None
     ad_spend: Money | None = None
     evidence_id: str
+
+    @field_validator("business_date")
+    @classmethod
+    def valid_business_date(cls, value):
+        date.fromisoformat(value)
+        return value
 
 
 class Order(Contract):
@@ -404,6 +440,9 @@ CONTRACTS = {
 REFERENCES = {
     "market_run_id": "market_runs",
     "market_report_id": "market_reports",
+    "forecast_id": "forecasts",
+    "parent_forecast_id": "forecasts",
+    "history_experiment_id": "experiments",
     "source_id": "sources",
     "evidence_id": "evidence",
     "product_id": "products",

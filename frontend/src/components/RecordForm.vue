@@ -2,7 +2,7 @@
 import { computed, reactive, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { editor, meta, request, post, put, refresh, referenceKinds } from '../api/client'
-import { labels, resources, stateLabel } from '../catalog'
+import { labels, procurementLabel, resources, stateLabel } from '../catalog'
 import RefSelect from './RefSelect.vue'
 const values = reactive<Record<string, any>>({}), busy = ref(false), error = ref('')
 const fields = computed(() => Object.entries(meta.value?.resources[editor.value?.kind || '']?.properties || {}) as [string, any][])
@@ -13,7 +13,7 @@ watch(editor, async (ed) => {
   Object.keys(values).forEach(k => delete values[k]); error.value = ''
   if (!ed) return
   for (const [key, property] of fields.value) {
-    let value = ed.row?.data[key] ?? ed.values?.[key] ?? property.default
+    let value = ed.values?.[key] ?? ed.row?.data[key] ?? property.default
     const p = schema(property)
     if (value === undefined && ['observed_at', 'paid_at', 'start_at', 'invoice_at'].includes(key)) value = new Date().toISOString()
     if (value === undefined && ['expires_at', 'end_at'].includes(key) && required.value.includes(key)) value = new Date(Date.now()+14*864e5).toISOString()
@@ -21,6 +21,10 @@ watch(editor, async (ed) => {
     if (value === undefined && p.type === 'array') value = []
     if (value === undefined && p.type === 'boolean') value = nullable(property) ? null : false
     values[key] = p.type === 'object' ? JSON.stringify(value ?? {}, null, 2) : value ?? null
+  }
+  if (ed.kind === 'offers' && !values.procurement_mode) {
+    values.procurement_mode = ed.row?.data.dropship === false ? 'STOCK' : 'DROPSHIP'
+    if (ed.row?.data.dropship === true && ed.row.data.verified && values.min_order == null) values.min_order = 1
   }
   if (ed.kind === 'strategies' && !ed.row && (!ed.values?.config)) {
     const existing = await request('/strategies?page_size=1')
@@ -36,6 +40,8 @@ async function submit() {
   try {
     const payload: Record<string,any> = {}
     for (const [key, property] of fields.value) {
+      if (editor.value.kind === 'offers' && (key === 'dropship' ||
+        (values.procurement_mode === 'DROPSHIP' && ['batch_quantity','supplier_pack','outbound_shipping'].includes(key)))) continue
       let value = values[key]; const p = schema(property)
       if (value === '' || value === null || value === undefined) {
         if (required.value.includes(key)) throw new Error((labels[key] || key)+'不能为空')
@@ -58,16 +64,30 @@ async function submit() {
     error.value = details || e.message
   } finally { busy.value = false }
 }
+const visibleFields = computed(() => fields.value.filter(([key]) => {
+  if (key === 'market_report_id') return false
+  if (editor.value?.kind !== 'offers') return true
+  return key !== 'dropship' && (values.procurement_mode === 'STOCK' || !['batch_quantity','supplier_pack','outbound_shipping'].includes(key))
+}))
+function fieldLabel(key:string) {
+  if (editor.value?.kind === 'offers' && values.procurement_mode === 'STOCK') {
+    if (key === 'shipping') return '整批进货运费'
+    if (key === 'unit_cost') return '适用阶梯的每采购包装报价'
+  }
+  if (editor.value?.kind === 'offers' && key === 'shipping') return '每单直发运费'
+  return labels[key] || key
+}
 </script>
 <template>
   <el-dialog :model-value="!!editor" @close="editor=null" :title="`${editor?.row ? '修改' : '新增'}${resources[editor?.kind || '']?.title || ''}`" width="760px" destroy-on-close>
     <el-alert v-if="error" type="error" :title="error" :closable="false" show-icon class="mb16" />
     <el-alert v-if="editor?.kind==='orders'" title="未知费用请留空；确认没有发生的费用才填写 0。外部订单标识保存时会脱敏。" type="info" :closable="false" class="mb16" />
     <el-alert v-if="editor?.kind==='assessments'" title="人工分项 0–100 分，越高越好。缺失的依据留空；评分不会解除样品或风险阻断。" type="info" :closable="false" class="mb16" />
+    <el-alert v-if="editor?.kind==='experiments' && values.forecast_id" title="采用预测方案时，按北京时间整日填写测款起止时间，天数和方案一致。" type="info" :closable="false" class="mb16" />
     <el-form label-position="top" @submit.prevent="submit" class="record-form">
-      <el-form-item v-for="[key, property] in fields" :key="key" :label="(labels[key] || key) + (['conversion','mall_click_share','r','head_share'].includes(key) ? '（0–1）' : '')" :required="required.includes(key)" :class="{'full':schema(property).type==='object' || ['note','reason','hypothesis','permission_note','return_terms'].includes(key)}">
-        <RefSelect v-if="referenceKinds[key]" v-model="values[key]" :kind="referenceKinds[key]" />
-        <el-select v-else-if="schema(property).enum" v-model="values[key]" :clearable="nullable(property)" style="width:100%"><el-option v-for="option in schema(property).enum" :key="option" :label="stateLabel(option)" :value="option" /></el-select>
+      <el-form-item v-for="[key, property] in visibleFields" :key="key" :label="fieldLabel(key) + (['conversion','mall_click_share','r','head_share','fee_rate'].includes(key) ? '（0–1）' : '')" :required="required.includes(key)" :class="{'full':schema(property).type==='object' || ['note','reason','hypothesis','permission_note','return_terms'].includes(key)}">
+        <RefSelect v-if="referenceKinds[key]" v-model="values[key]" :kind="referenceKinds[key]" :candidate-id="key==='forecast_id' ? values.candidate_id : undefined" />
+        <el-select v-else-if="schema(property).enum" v-model="values[key]" :clearable="nullable(property)" style="width:100%"><el-option v-for="option in schema(property).enum" :key="option" :label="key==='procurement_mode'?procurementLabel(option):stateLabel(option)" :value="option" /></el-select>
         <el-select v-else-if="schema(property).type==='array'" v-model="values[key]" multiple filterable allow-create style="width:100%"><el-option label="全部数据类型" value="*"/><el-option v-for="(r,kind) in resources" :key="kind" :label="r.title" :value="kind"/></el-select>
         <el-select v-else-if="schema(property).type==='boolean' && nullable(property)" v-model="values[key]" clearable style="width:100%"><el-option label="是" :value="true"/><el-option label="否" :value="false"/></el-select>
         <el-switch v-else-if="schema(property).type==='boolean'" v-model="values[key]" />

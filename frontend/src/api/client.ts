@@ -39,9 +39,10 @@ export function openEditor(kind: string, values: Record<string, any> = {}, row?:
 export const referenceKinds: Record<string, string> = {
   source_id: 'sources', evidence_id: 'evidence', product_id: 'products', sku_id: 'skus', listing_id: 'listings', supplier_id: 'suppliers',
   offer_id: 'offers', candidate_id: 'candidates', keyword_id: 'keywords', experiment_id: 'experiments', primary_offer_id: 'offers', backup_offer_id: 'offers',
+  forecast_id: 'forecasts', market_report_id: 'market/reports',
 }
 export function entityName(row: Entity) {
-  return row.data._label || row.data.name || row.data.keyword || row.data.title || row.data.locator || row.data.hypothesis ||
+  return row.data._label || row.data.name || row.data.keyword || row.data.title || row.data.locator || row.data.hypothesis || row.data.query ||
     (row.data.unit_cost ? `报价 ¥${row.data.unit_cost} · ${row.data.region}` : '') || row.data.reason || row.data.note || row.id.slice(0, 8)
 }
 export function pretty(value: any): string {

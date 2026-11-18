@@ -24,6 +24,7 @@ export interface MarketItem {
   price_tiers: { min_quantity: number; price: string }[]; seller: string; seller_id: string
   dropship: boolean | null; observed_at: string; source_updated_at: string | null
   detail_loaded: boolean; warnings: string[]; evidence_note?: string
+  variant_key?: string; conditions?: string; price_kind?: 'LIST' | 'ELIGIBLE'; eligibility_verified?: boolean
 }
 export interface MarketConnection {
   provider: string; provider_name: string; enabled: boolean; configured: boolean
@@ -41,7 +42,7 @@ export type MarketRun = Omit<Entity, 'data'> & {
 export type MarketReport = Omit<Entity, 'data'> & {
   data: {
     query: string; mode: MarketMode; market_run_id: string; provider_version: string; inputs: CompareInput
-    supply: MarketItem; retail: MarketItem; created_at: string; candidate_id?: string
+    supply: MarketItem; retail: MarketItem; created_at: string; candidate_id?: string; stale_reason?: string | null
     result: {
       recommendation: string; match_state: string; sticker_spread: string | null
       normal: { display_contribution: string; contribution_rate: number | null; max_cac: string } | null
@@ -50,6 +51,7 @@ export type MarketReport = Omit<Entity, 'data'> & {
       blocked: string[]; pending: string[]; cautions: string[]; conflicts: string[]
       missing_attributes: string[]; supply_unit_price: string | null; retail_unit_price: string | null
       cash_scope: string; min_order: number | null
+      sellable_units?: number | null; stock_batch_cost?: string | null
     }
   }
 }

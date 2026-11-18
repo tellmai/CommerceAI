@@ -41,17 +41,30 @@ def fingerprint(value):
     ).hexdigest()
 
 
+def expected_cost(inputs):
+    """Fixed expected cost and the fraction of paid price left after refunds and percentage fees."""
+    c, f, b, t, a, r, loss = (decimal(inputs[k]) for k in ["c", "f", "b", "t", "a", "r", "l"])
+    fee_rate = decimal(inputs.get("fee_rate", 0))
+    return (1 - r) * (c + f + b + t) + r * loss + a, (1 - r) * (1 - fee_rate)
+
+
 def profit(inputs):
-    p, c, f, b, t, a, r, loss = (decimal(inputs[k]) for k in ["p", "c", "f", "b", "t", "a", "r", "l"])
-    retained = p - c - f - b - t
-    max_cac = (1 - r) * retained - r * loss
-    contribution = max_cac - a
+    p, a = (decimal(inputs[k]) for k in ["p", "a"])
+    fixed, retained_rate = expected_cost(inputs)
+    contribution = p * retained_rate - fixed
+    max_cac = contribution + a
     return {
         "contribution": money(contribution),
         "max_cac": money(max_cac),
         "contribution_rate": float(contribution / p) if p > 0 else None,
         "display_contribution": money(contribution, 2),
     }
+
+
+def stock_batch(quantity, supplier_pack, sale_pack, unit_price, shipping):
+    sellable = quantity * supplier_pack // sale_pack
+    batch_cost = unit_price * quantity + shipping
+    return sellable, batch_cost, batch_cost / sellable if sellable else None
 
 
 def order_contribution(data):

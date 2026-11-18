@@ -1,6 +1,8 @@
 from datetime import timedelta
 from decimal import Decimal as D
 
+from sqlalchemy import func
+
 from app.db import Entity, now
 from app.domain import (
     blue_ocean,
@@ -330,11 +332,15 @@ def run_score(db, workspace, candidate_id, strategy_id=None):
     return existing or persist(db, workspace, "scores", data, external_key=key, action="score")
 
 
-def score_stale(db, workspace, score, candidate, requirements=None):
+COHORT_FIELDS = ("category", "source_id", "metric_definition", "window_start", "window_end")
+
+
+def score_stale(db, workspace, score, candidate, requirements=None, cohort_dates=None):
     """A historical score remains replayable, but cannot silently look current."""
     if score is None:
         return False
-    if score.data["strategy_id"] != config_for(db, workspace).id:
+    strategy = config_for(db, workspace)
+    if score.data["strategy_id"] != strategy.id:
         return True
     for saved in score.data.get("records", []):
         current = get(db, workspace, saved["id"])
@@ -342,7 +348,7 @@ def score_stale(db, workspace, score, candidate, requirements=None):
             # Stage/note edits do not change the numerical research inputs.
             if current.kind == "candidates" and all(
                 current.data.get(k) == saved["data"].get(k)
-                for k in ["sku_id", "keyword_id", "primary_offer_id", "backup_offer_id"]
+                for k in ["sku_id", "keyword_id", "primary_offer_id", "backup_offer_id", "procurement_mode"]
             ):
                 continue
             return True
@@ -357,24 +363,28 @@ def score_stale(db, workspace, score, candidate, requirements=None):
     keyword_id = candidate.data.get("keyword_id")
     if keyword_id:
         keyword = get(db, workspace, keyword_id, "keywords")
-        if not keyword_analysis(db, workspace, keyword, config_for(db, workspace).data["config"])["fresh"]:
+        if not keyword_current(db, workspace, keyword, strategy):
             return True
-        # A new comparable observation changes the normalization population.
-        if any(
-            row.created_at > score.created_at
-            for row in rows(
-                db,
-                workspace,
-                "keywords",
-                category=keyword.data["category"],
-                source_id=keyword.data["source_id"],
-                metric_definition=keyword.data["metric_definition"],
-                window_start=keyword.data["window_start"],
-                window_end=keyword.data["window_end"],
-            )
-        ):
+        key = tuple(keyword.data[field] for field in COHORT_FIELDS)
+        if cohort_dates is not None:
+            newest = cohort_dates.get(key)
+        else:
+            same_window = query(workspace, "keywords", **dict(zip(COHORT_FIELDS, key, strict=True)))
+            newest = db.scalar(same_window.with_only_columns(func.max(Entity.created_at)))
+        if newest is not None and newest > score.created_at:
             return True
     return False
+
+
+def keyword_current(db, workspace, keyword, strategy):
+    try:
+        require_evidence(
+            db, workspace, keyword.data["evidence_id"], "keywords", keyword.data.get("evidence_version")
+        )
+    except BusinessError:
+        return False
+    hours = strategy.data["config"]["freshness"]["keyword_snapshot_hours"]
+    return iso(keyword.data["observed_at"]) >= now() - timedelta(hours=hours)
 
 
 def strategies_for_candidate(db, workspace, candidate_id):

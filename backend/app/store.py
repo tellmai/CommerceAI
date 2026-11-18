@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from sqlalchemy import String, cast, delete, func, or_, select, update
 from sqlalchemy.orm import aliased
 
@@ -6,7 +8,7 @@ from app.domain import fingerprint, iso, order_contribution, profit
 from app.errors import BusinessError
 from app.schemas import CONTRACTS, REFERENCES
 
-IMMUTABLE = {"scores", "strategies", "profits", "assessments", "risks", "samples"}
+IMMUTABLE = {"scores", "strategies", "profits", "assessments", "risks", "samples", "forecasts"}
 NATURAL_KEYS = {
     "sources": ["name"],
     "products": ["category", "name", "brand"],
@@ -25,6 +27,34 @@ NATURAL_KEYS = {
     "transactions": ["source_id", "source_row"],
     "signals": ["listing_id", "metric_kind", "unit", "observed_at", "window_start", "window_end"],
 }
+
+
+class ReadSnapshot:
+    """Request-local records for reusing the same validation rules on a bulk read."""
+
+    def __init__(self, workspace, entities):
+        self.workspace = workspace
+        self.evidence_checks = {}
+        self.by_id = {row.id: row for row in entities if row.workspace == workspace}
+        self.by_kind = defaultdict(list)
+        self.by_relation = defaultdict(list)
+        for row in sorted(self.by_id.values(), key=lambda r: (-r.updated_at.timestamp(), r.id)):
+            self.by_kind[row.kind].append(row)
+            for field in ("candidate_id", "offer_id", "listing_id", "sku_id"):
+                if row.data.get(field):
+                    self.by_relation[row.kind, field, row.data[field]].append(row)
+
+    def find(self, workspace, kind, filters):
+        if workspace != self.workspace:
+            return []
+        pool = self.by_kind[kind]
+        for field in ("candidate_id", "offer_id", "listing_id", "sku_id"):
+            if field in filters:
+                pool = self.by_relation[kind, field, filters[field]]
+                if len(filters) == 1:
+                    return pool
+                break
+        return [row for row in pool if all(row.data.get(field) == val for field, val in filters.items())]
 
 
 def row_out(row):
@@ -71,7 +101,10 @@ def apply_search(stmt, workspace, search):
 
 
 def get(db, workspace, entity_id, kind=None):
-    row = db.scalar(select(Entity).where(Entity.id == entity_id, Entity.workspace == workspace))
+    if isinstance(db, ReadSnapshot):
+        row = db.by_id.get(entity_id) if workspace == db.workspace else None
+    else:
+        row = db.scalar(select(Entity).where(Entity.id == entity_id, Entity.workspace == workspace))
     if row is None or (kind and row.kind != kind):
         raise BusinessError("NOT_FOUND", "记录不存在或不属于当前数据空间", 404)
     return row
@@ -86,10 +119,14 @@ def query(workspace, kind, **filters):
 
 
 def rows(db, workspace, kind, **filters):
+    if isinstance(db, ReadSnapshot):
+        return db.find(workspace, kind, filters)
     return list(db.scalars(query(workspace, kind, **filters).order_by(Entity.updated_at.desc(), Entity.id)))
 
 
 def latest(db, workspace, kind, **filters):
+    if isinstance(db, ReadSnapshot):
+        return next(iter(db.find(workspace, kind, filters)), None)
     return db.scalar(query(workspace, kind, **filters).order_by(Entity.updated_at.desc(), Entity.id).limit(1))
 
 
@@ -105,6 +142,10 @@ def require_source(db, workspace, source_id, kind=None):
 
 
 def require_evidence(db, workspace, evidence_id, kind=None, expected_version=None):
+    cache_key = (evidence_id, kind, expected_version)
+    scoped = isinstance(db, ReadSnapshot) and db.workspace == workspace
+    if scoped and cache_key in db.evidence_checks:
+        return db.evidence_checks[cache_key]
     evidence = get(db, workspace, evidence_id, "evidence")
     require_source(db, workspace, evidence.data["source_id"], kind)
     if evidence.data["quality_flag"] != "valid":
@@ -113,6 +154,14 @@ def require_evidence(db, workspace, evidence_id, kind=None, expected_version=Non
         raise BusinessError("EVIDENCE_STALE", "证据已过期")
     if expected_version is not None and expected_version != evidence.version:
         raise BusinessError("EVIDENCE_REVISED", "证据内容已修订，需要重新核验")
+    if evidence.data.get("market_report_id"):
+        from app.market_service import require_report_current
+
+        require_report_current(
+            db, workspace, get(db, workspace, evidence.data["market_report_id"], "market_reports")
+        )
+    if scoped:
+        db.evidence_checks[cache_key] = evidence
     return evidence
 
 
@@ -247,6 +296,7 @@ def save(
         offer_id = candidate.data.get("primary_offer_id")
         offer = get(db, workspace, offer_id, "offers") if offer_id else None
         data["offer_version"] = {"id": offer.id, "version": offer.version} if offer else None
+        data["procurement_mode"] = candidate.data.get("procurement_mode", "DROPSHIP")
     if kind == "orders":
         get(db, workspace, data["experiment_id"], "experiments")
         if not data["external_order_id"].startswith("sha256:"):
@@ -266,7 +316,7 @@ def save(
     if kind == "experiments":
         from app.workflows import validate_experiment
 
-        validate_experiment(db, workspace, data)
+        validate_experiment(db, workspace, data, entity)
         data["status"] = "PLANNED"
         candidate = get(db, workspace, data["candidate_id"], "candidates")
         score = latest(db, workspace, "scores", candidate_id=candidate.id)

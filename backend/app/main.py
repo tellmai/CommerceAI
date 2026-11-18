@@ -22,15 +22,23 @@ from app import config
 from app.db import Audit, ImportBatch, Job, LoginSession, Revision, Session, new_id, now
 from app.domain import fingerprint, money, profit, safe_cell
 from app.errors import BusinessError
+from app.forecasts import (
+    ForecastSave,
+    evaluate,
+    replay_forecast,
+    resolve_forecast,
+    save_forecast,
+    traffic_reference,
+)
 from app.ingestion import IMPORTABLE, preview
 from app.market_routes import register_market_routes
+from app.market_service import report_draft
 from app.opportunities import (
     ForecastBaseline,
     ForecastInput,
     ForecastResult,
     OpportunityPage,
     baseline,
-    forecast,
     opportunities,
 )
 from app.schemas import (
@@ -44,7 +52,7 @@ from app.schemas import (
     ProfitInput,
     Transition,
 )
-from app.store import audit, get, latest, list_page, persist, require_source, row_out, save
+from app.store import audit, get, latest, list_page, persist, require_source, row_out, rows, save
 from app.workflows import config_for, gate, review_match, transition
 
 app = FastAPI(
@@ -285,12 +293,13 @@ def recommended_products(
 def forecast_baseline(
     candidate_id: str | None = None,
     report_id: str | None = None,
+    region: str | None = None,
     ws=Depends(workspace),
     db=Depends(database, scope="function"),
 ):
     if bool(candidate_id) == bool(report_id):
         raise BusinessError("INVALID_FORECAST_SOURCE", "请选择一个候选或一个比价报告")
-    return baseline(db, ws, candidate_id, report_id)
+    return baseline(db, ws, candidate_id, report_id, region)
 
 
 @app.post(
@@ -300,16 +309,49 @@ def forecast_baseline(
     tags=["爆款推荐"],
 )
 def calculate_forecast(body: ForecastInput, ws=Depends(workspace), db=Depends(database, scope="function")):
-    if ws == "public":
-        raise BusinessError("SPACE_MODE_CONFLICT", "请在模拟演示或真实经营空间测算当前商品", 409)
-    source = (
-        baseline(db, ws, body.candidate_id, body.report_id) if body.candidate_id or body.report_id else None
-    )
-    return (
-        forecast(body, source.reference_price, source.reference_count, source.notices)
-        if source
-        else forecast(body)
-    )
+    body, _, anchor = resolve_forecast(db, ws, body)
+    return evaluate(body, anchor)
+
+
+@app.get("/api/v1/forecasts", response_model=EntityPage, dependencies=[Auth], tags=["经营预测"])
+def forecast_list(
+    candidate_id: str | None = None,
+    search: str = Query("", max_length=100),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    ws=Depends(workspace),
+    db=Depends(database, scope="function"),
+):
+    if candidate_id:
+        get(db, ws, candidate_id, "candidates")
+    return list_page(db, ws, "forecasts", page, page_size, search, filters={"candidate_id": candidate_id})
+
+
+@app.get("/api/v1/forecasts/traffic", dependencies=[Auth], tags=["经营预测"])
+def forecast_traffic(candidate_id: str, ws=Depends(workspace), db=Depends(database, scope="function")):
+    return traffic_reference(db, ws, candidate_id)
+
+
+@app.post(
+    "/api/v1/forecasts", response_model=EntityOut, status_code=201, dependencies=[Auth], tags=["经营预测"]
+)
+def forecast_create(body: ForecastSave, ws=Depends(workspace), db=Depends(database, scope="function")):
+    return row_out(save_forecast(db, ws, body))
+
+
+@app.get("/api/v1/forecasts/{forecast_id}", response_model=EntityOut, dependencies=[Auth], tags=["经营预测"])
+def forecast_detail(forecast_id: str, ws=Depends(workspace), db=Depends(database, scope="function")):
+    return row_out(get(db, ws, forecast_id, "forecasts"))
+
+
+@app.get(
+    "/api/v1/forecasts/{forecast_id}/replay",
+    response_model=ForecastResult,
+    dependencies=[Auth],
+    tags=["经营预测"],
+)
+def forecast_replay(forecast_id: str, ws=Depends(workspace), db=Depends(database, scope="function")):
+    return replay_forecast(get(db, ws, forecast_id, "forecasts"))
 
 
 @app.post("/api/v1/profit/cashflow", dependencies=[Auth])
@@ -340,6 +382,11 @@ def research(candidate_id: str, ws=Depends(workspace), db=Depends(database, scop
     return {
         **strategies_for_candidate(db, ws, candidate_id),
         "requirements": requirements,
+        "buy_sample_requirements": gate(db, ws, candidate, "READY_SAMPLE"),
+        "market_drafts": [
+            report_draft(db, ws, report, candidate)
+            for report in rows(db, ws, "market_reports", candidate_id=candidate_id)[:20]
+        ],
         "score": row_out(score) if score else None,
         "score_stale": score_stale(db, ws, score, candidate, requirements),
     }

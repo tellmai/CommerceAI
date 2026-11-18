@@ -174,6 +174,75 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/forecasts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Forecast List */
+        get: operations["forecast_list_api_v1_forecasts_get"];
+        put?: never;
+        /** Forecast Create */
+        post: operations["forecast_create_api_v1_forecasts_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/forecasts/traffic": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Forecast Traffic */
+        get: operations["forecast_traffic_api_v1_forecasts_traffic_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/forecasts/{forecast_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Forecast Detail */
+        get: operations["forecast_detail_api_v1_forecasts__forecast_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/forecasts/{forecast_id}/replay": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Forecast Replay */
+        get: operations["forecast_replay_api_v1_forecasts__forecast_id__replay_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/profit/cashflow": {
         parameters: {
             query?: never;
@@ -1357,6 +1426,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/market/runs/{run_id}/quotes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Revise Quotes */
+        put: operations["revise_quotes_api_v1_market_runs__run_id__quotes_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/market/runs/{run_id}": {
         parameters: {
             query?: never;
@@ -1463,6 +1549,17 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AlternativePrice */
+        AlternativePrice: {
+            /** Low */
+            low: number | string;
+            /** Base */
+            base: number | string;
+            /** High */
+            high: number | string;
+            /** Price */
+            price: string;
+        };
         /** Assessment */
         Assessment: {
             /** Candidate Id */
@@ -1531,6 +1628,14 @@ export interface components {
         Candidate: {
             /** Sku Id */
             sku_id: string;
+            /**
+             * Procurement Mode
+             * @default DROPSHIP
+             * @enum {string}
+             */
+            procurement_mode: "STOCK" | "DROPSHIP";
+            /** Market Report Id */
+            market_report_id?: string | null;
             /** Keyword Id */
             keyword_id?: string | null;
             /** Primary Offer Id */
@@ -1641,6 +1746,11 @@ export interface components {
             packaging?: string | null;
             /** Fees */
             fees?: string | null;
+            /**
+             * Fee Rate
+             * @default 0
+             */
+            fee_rate: number | string;
             /** Advertising */
             advertising?: string | null;
             /** Refund Rate */
@@ -1756,6 +1866,8 @@ export interface components {
              * @default
              */
             note: string;
+            /** Market Report Id */
+            market_report_id?: string | null;
         };
         /** EvidenceUpdate */
         EvidenceUpdate: {
@@ -1767,6 +1879,8 @@ export interface components {
         Experiment: {
             /** Candidate Id */
             candidate_id: string;
+            /** Forecast Id */
+            forecast_id?: string | null;
             /**
              * Start At
              * Format: date-time
@@ -1812,6 +1926,23 @@ export interface components {
             source_id: string | null;
             /** Notices */
             notices: string[];
+            /**
+             * Procurement Mode
+             * @enum {string}
+             */
+            procurement_mode: "STOCK" | "DROPSHIP";
+            /** Region */
+            region: string;
+            /** Stock Units */
+            stock_units?: number | null;
+            /** Stock Batch Cash */
+            stock_batch_cash?: string | null;
+            /** Records */
+            records: {
+                [key: string]: number;
+            };
+            /** Expires At */
+            expires_at?: string | null;
         };
         /** ForecastCosts */
         ForecastCosts: {
@@ -1823,6 +1954,11 @@ export interface components {
             b?: string | null;
             /** T */
             t?: string | null;
+            /**
+             * Fee Rate
+             * @default 0
+             */
+            fee_rate: number;
             /** A */
             a?: string | null;
             /** R */
@@ -1840,6 +1976,11 @@ export interface components {
             b?: string | null;
             /** T */
             t?: string | null;
+            /**
+             * Fee Rate
+             * @default 0
+             */
+            fee_rate: number | string;
             /** A */
             a?: string | null;
             /** R */
@@ -1857,6 +1998,28 @@ export interface components {
             candidate_id?: string | null;
             /** Report Id */
             report_id?: string | null;
+            /** Procurement Mode */
+            procurement_mode?: ("STOCK" | "DROPSHIP") | null;
+            /** Region */
+            region?: string | null;
+            /** Refund Amount Rate */
+            refund_amount_rate?: number | string | null;
+            /** Channel */
+            channel?: string | null;
+            /** Stock Units */
+            stock_units?: number | null;
+            /** Stock Batch Cash */
+            stock_batch_cash?: string | null;
+            /** Dropship Capacity Per Day */
+            dropship_capacity_per_day?: number | null;
+            /** Settlement Days */
+            settlement_days?: number | null;
+            /** Advertising Budget */
+            advertising_budget?: string | null;
+            /** Refund Reserve */
+            refund_reserve?: string | null;
+            /** Alternative Prices */
+            alternative_prices?: components["schemas"]["AlternativePrice"][];
         };
         /** ForecastResult */
         ForecastResult: {
@@ -1869,17 +2032,23 @@ export interface components {
             /** Suggested Price */
             suggested_price: string | null;
             /** Max Purchase Cost */
-            max_purchase_cost: string | null;
+            max_purchase_cost?: string | null;
             /** Max Cac */
-            max_cac: string | null;
+            max_cac?: string | null;
+            /** Max Target Cac */
+            max_target_cac?: string | null;
+            /** Reference Price Gap */
+            reference_price_gap: string | null;
+            /** Reference Cost Reduction */
+            reference_cost_reduction: string | null;
             /** Unit Variable Cost */
-            unit_variable_cost: string | null;
+            unit_variable_cost?: string | null;
             /** Unit Contribution */
-            unit_contribution: string | null;
+            unit_contribution?: string | null;
             /** Unit Contribution Rate */
-            unit_contribution_rate: number | null;
+            unit_contribution_rate?: number | null;
             /** Break Even Orders */
-            break_even_orders: number | null;
+            break_even_orders?: number | null;
             /** Reference Price */
             reference_price: string | null;
             /** Reference Count */
@@ -1895,6 +2064,16 @@ export interface components {
             pricing_status: "INCOMPLETE" | "UNATTAINABLE" | "COST_ONLY" | "ABOVE_REFERENCE" | "WITHIN_REFERENCE";
             /** Scenarios */
             scenarios: components["schemas"]["ForecastScenario"][];
+            /** Alternative Scenarios */
+            alternative_scenarios: components["schemas"]["PriceForecast"][];
+        };
+        /** ForecastSave */
+        ForecastSave: {
+            /** Name */
+            name: string;
+            inputs: components["schemas"]["ForecastInput"];
+            /** Parent Forecast Id */
+            parent_forecast_id?: string | null;
         };
         /** ForecastScenario */
         ForecastScenario: {
@@ -1907,10 +2086,22 @@ export interface components {
             conversion: number;
             /** Orders */
             orders: number;
+            /** Demand Orders */
+            demand_orders: number;
+            /** Shortfall */
+            shortfall: number;
+            /** Remaining Stock */
+            remaining_stock: number | null;
             /** Paid Revenue */
             paid_revenue: string;
             /** Retained Revenue */
             retained_revenue: string | null;
+            /** Net Revenue */
+            net_revenue: string | null;
+            /** Advertising Cost */
+            advertising_cost: string | null;
+            /** Cash Required */
+            cash_required: string | null;
             /** Variable Cost */
             variable_cost: string | null;
             /** Contribution */
@@ -2058,6 +2249,16 @@ export interface components {
             title: string;
             /** Url */
             url: string;
+            /**
+             * Variant Key
+             * @default
+             */
+            variant_key: string;
+            /**
+             * Seller
+             * @default
+             */
+            seller: string;
             /** Price */
             price: string;
             /** Pack Count */
@@ -2084,6 +2285,24 @@ export interface components {
             model: string;
             /** Min Order */
             min_order?: number | null;
+            /** Price Tiers */
+            price_tiers?: components["schemas"]["PriceTier"][];
+            /**
+             * Price Kind
+             * @default LIST
+             * @enum {string}
+             */
+            price_kind: "LIST" | "ELIGIBLE";
+            /**
+             * Eligibility Verified
+             * @default false
+             */
+            eligibility_verified: boolean;
+            /**
+             * Conditions
+             * @default
+             */
+            conditions: string;
             /** Shipping */
             shipping?: string | null;
             /**
@@ -2102,6 +2321,15 @@ export interface components {
             query: string;
             /** Quotes */
             quotes: components["schemas"]["ManualQuote"][];
+        };
+        /** ManualRunRevision */
+        ManualRunRevision: {
+            /** Query */
+            query: string;
+            /** Quotes */
+            quotes: components["schemas"]["ManualQuote"][];
+            /** Expected Version */
+            expected_version: number;
         };
         /** Match */
         Match: {
@@ -2143,7 +2371,9 @@ export interface components {
             /** Evidence Id */
             evidence_id: string;
             /** Dropship */
-            dropship: boolean;
+            dropship?: boolean | null;
+            /** Procurement Mode */
+            procurement_mode?: ("STOCK" | "DROPSHIP") | null;
             /** Quantity */
             quantity: number;
             /** Unit Cost */
@@ -2152,6 +2382,14 @@ export interface components {
             shipping?: string | null;
             /** Service Fee */
             service_fee?: string | null;
+            /** Supplier Pack */
+            supplier_pack?: number | null;
+            /** Min Order */
+            min_order?: number | null;
+            /** Batch Quantity */
+            batch_quantity?: number | null;
+            /** Outbound Shipping */
+            outbound_shipping?: string | null;
             /**
              * Currency
              * @default CNY
@@ -2218,6 +2456,16 @@ export interface components {
             missing: string[];
             /** Blocked */
             blocked: string[];
+            /**
+             * Procurement Mode
+             * @enum {string}
+             */
+            procurement_mode: "STOCK" | "DROPSHIP";
+            /**
+             * Next Action
+             * @enum {string}
+             */
+            next_action: "RESEARCH" | "BUY_SAMPLE" | "START_TEST" | "TRACK_TEST" | "HOLD";
         };
         /** OpportunityPage */
         OpportunityPage: {
@@ -2338,6 +2586,20 @@ export interface components {
              */
             eligibility_verified: boolean;
         };
+        /** PriceForecast */
+        PriceForecast: {
+            /** Price */
+            price: string;
+            /** Scenarios */
+            scenarios: components["schemas"]["ForecastScenario"][];
+        };
+        /** PriceTier */
+        PriceTier: {
+            /** Min Quantity */
+            min_quantity: number;
+            /** Price */
+            price: string;
+        };
         /** PricesUpdate */
         PricesUpdate: {
             /** Expected Version */
@@ -2374,6 +2636,11 @@ export interface components {
             b: string;
             /** T */
             t: string;
+            /**
+             * Fee Rate
+             * @default 0
+             */
+            fee_rate: number | string;
             /** A */
             a: string;
             /** R */
@@ -2407,6 +2674,11 @@ export interface components {
             b: string;
             /** T */
             t: string;
+            /**
+             * Fee Rate
+             * @default 0
+             */
+            fee_rate: number | string;
             /** A */
             a: string;
             /** R */
@@ -2640,16 +2912,24 @@ export interface components {
         };
         /** Traffic */
         Traffic: {
-            /** Days */
-            days: number;
-            /** Daily Visits */
-            daily_visits: number;
             /** Low */
             low: number | string;
             /** Base */
             base: number | string;
             /** High */
             high: number | string;
+            /** Days */
+            days: number;
+            /** Daily Visits */
+            daily_visits: number;
+            /**
+             * Denominator
+             * @default VISITS
+             * @enum {string}
+             */
+            denominator: "VISITS" | "CLICKS";
+            /** History Experiment Id */
+            history_experiment_id?: string | null;
         };
         /** Transaction */
         Transaction: {
@@ -2952,6 +3232,7 @@ export interface operations {
             query?: {
                 candidate_id?: string | null;
                 report_id?: string | null;
+                region?: string | null;
             };
             header?: {
                 "x-workspace"?: string;
@@ -2995,6 +3276,176 @@ export interface operations {
                 "application/json": components["schemas"]["ForecastInput"];
             };
         };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ForecastResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    forecast_list_api_v1_forecasts_get: {
+        parameters: {
+            query?: {
+                candidate_id?: string | null;
+                search?: string;
+                page?: number;
+                page_size?: number;
+            };
+            header?: {
+                "x-workspace"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntityPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    forecast_create_api_v1_forecasts_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ForecastSave"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntityOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    forecast_traffic_api_v1_forecasts_traffic_get: {
+        parameters: {
+            query: {
+                candidate_id: string;
+            };
+            header?: {
+                "x-workspace"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    forecast_detail_api_v1_forecasts__forecast_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace"?: string;
+            };
+            path: {
+                forecast_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntityOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    forecast_replay_api_v1_forecasts__forecast_id__replay_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace"?: string;
+            };
+            path: {
+                forecast_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {
@@ -6907,6 +7358,43 @@ export interface operations {
         responses: {
             /** @description Successful Response */
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntityOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revise_quotes_api_v1_market_runs__run_id__quotes_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace"?: string;
+            };
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ManualRunRevision"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };

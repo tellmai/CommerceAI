@@ -8,9 +8,9 @@ export const resources: Record<string, { title: string, subtitle: string, column
   matches: { title: '同款审核', subtitle: '核对数量、材质及尺寸后确认同款', columns: ['listing_id', 'sku_id', 'state', 'reason'] },
   prices: { title: '零售价格', subtitle: '标价、优惠资格、运费和时间分别记录', columns: ['listing_id', 'price_kind', 'price', 'shipping', 'region', 'observed_at'] },
   suppliers: { title: '供应商', subtitle: '维护主备货源和供应商档案', columns: ['name', 'platform', 'external_id', 'note'] },
-  offers: { title: '代发报价', subtitle: '核验实际 SKU、费用、时效及退换条件', columns: ['supplier_id', 'sku_id', 'unit_cost', 'shipping', 'lead_hours', 'verified', 'expires_at'] },
+  offers: { title: '供货报价', subtitle: '核验备货批次或代发条件、费用及退换约定', columns: ['supplier_id', 'sku_id', 'procurement_mode', 'unit_cost', 'shipping', 'lead_hours', 'verified', 'expires_at'] },
   samples: { title: '样品检查', subtitle: '将质量和履约结果作为测款前提', columns: ['offer_id', 'result', 'reason', 'evidence_id'], immutable: true },
-  candidates: { title: '候选商品', subtitle: '把值得研究的机会推进到可验证的经营实验', columns: ['sku_id', 'state', 'primary_offer_id', 'keyword_id', 'note'] },
+  candidates: { title: '候选商品', subtitle: '把值得研究的机会推进到可验证的经营实验', columns: ['sku_id', 'procurement_mode', 'state', 'primary_offer_id', 'keyword_id', 'note'] },
   profits: { title: '利润情景', subtitle: '保存贡献利润、退款假设及获客成本', columns: ['candidate_id', 'label', 'p', 'c', 'a', 'r'], immutable: true },
   assessments: { title: '研究评估', subtitle: '人工分项评分必须有理由和证据', columns: ['candidate_id', 'fulfillment_score', 'quality_score', 'differentiation_score', 'reason'], immutable: true },
   risks: { title: '风险审核', subtitle: '严重风险优先于评分，解除风险需要新证据', columns: ['candidate_id', 'risk_code', 'status', 'reason'], immutable: true },
@@ -31,7 +31,10 @@ export const labels: Record<string, string> = {
   external_id: '平台商品或供应商 ID', external_sku_id: '平台 SKU ID', url: '商品链接', listing_id: '平台商品',
   reason: '核验理由', state: '当前阶段', price_kind: '价格口径', currency: '币种', region: '适用地区', price: '商品价格', shipping: '运费',
   conditions: '优惠条件', eligibility_verified: '优惠资格已核验', supplier_id: '供应商', dropship: '支持一件代发',
-  unit_cost: '代发采购价', service_fee: '包材与代发服务费', lead_hours: '承诺发货小时', return_terms: '退换货约定', verified: '报价已核验',
+  unit_cost: '供货单价', service_fee: '每销售套装包材与服务费', lead_hours: '承诺发货小时', return_terms: '退换货约定', verified: '报价已核验',
+  procurement_mode: '采购方式', supplier_pack: '每采购包装件数', batch_quantity: '本批采购包装数',
+  min_order: '最少起订包装数', outbound_shipping: '每销售套装发货运费', forecast_id: '预测方案',
+  market_report_id: '来源比价报告', fee_rate: '按实付额计的平台费率',
   offer_id: '供货报价', result: '样品结果', candidate_id: '候选商品', keyword_id: '关联关键词', primary_offer_id: '主供报价', backup_offer_id: '备供报价',
   p: '实付收入 P', c: '采购成本 C', f: '出库运费 F', b: '包材及代发 B', t: '平台费及变动税费 T', a: '每支付订单广告费 A', r: '全退概率 r', l: '全退净损失 L', label: '情景类型',
   fulfillment_score: '履约评分', quality_score: '质量与样品评分', backup_score: '主备货源评分', usage_risk_score: '使用与质量安全评分', differentiation_score: '差异化评分',
@@ -59,6 +62,9 @@ export const states: Record<string, string> = {
   SOLD:'已售',GROUP_BUY:'已拼',REVIEW_COUNT:'评价数',ESTIMATED_SALES:'估算销量',ORDERS:'订单',ITEMS:'件数',REVIEWS:'条评价',
 }
 export function stateLabel(value: any) { return states[value] || String(value ?? '待核验') }
+export function procurementLabel(value: unknown) {
+  return value === 'STOCK' ? '小批备货' : value === 'DROPSHIP' ? '一件代发' : '待选择'
+}
 export function tagType(value: any): 'success' | 'warning' | 'danger' | 'info' {
   if (['BLOCKED', 'FAILED', 'REJECTED', 'FAIL'].includes(value)) return 'danger'
   if (['PASS', 'PASSED', 'MATCHED', 'SUCCEEDED', 'READY_TEST', 'TESTING', 'SCALE'].includes(value)) return 'success'

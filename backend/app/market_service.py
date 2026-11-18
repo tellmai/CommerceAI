@@ -2,17 +2,20 @@
 
 from copy import deepcopy
 from datetime import timedelta
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from sqlalchemy import select
 
-from app.db import Job, Session, now
-from app.domain import fingerprint, iso, money
+from app.db import Entity, Job, Session, now
+from app.domain import decimal, fingerprint, iso, money
 from app.errors import BusinessError
 from app.ingestion import assert_lease
 from app.market_analysis import analyze
 from app.market_connections import PLATFORMS, read_connection, require_connection
 from app.market_provider import OneBound, safe_url
-from app.store import get, latest, persist, row_out, save
+from app.schemas import MatchReview
+from app.store import get, latest, persist, query, require_evidence, row_out, save
+from app.workflows import candidate_mode, config_for, review_match
 
 
 def start_search(db, workspace, body):
@@ -77,26 +80,46 @@ def record_search_failure(db, job):
     )
 
 
-def save_manual_run(db, workspace, body):
+def quote_identity(platform, url, variant):
+    parsed = urlsplit(url)
+    identity_params = {"id", "item_id", "goods_id", "offerid", "sku", "sku_id", "skuid"}
+    params = sorted((key, value) for key, value in parse_qsl(parsed.query) if key.lower() in identity_params)
+    canonical = urlunsplit((parsed.scheme, parsed.netloc, parsed.path.rstrip("/"), urlencode(params), ""))
+    return platform + ":" + fingerprint([canonical, variant])[:24]
+
+
+def save_manual_run(db, workspace, body, run_id=None):
     if workspace != "live":
         raise BusinessError("SPACE_MODE_CONFLICT", "请在真实经营空间录入平台报价", 409)
     captured_at = now()
+    run = get(db, workspace, run_id, "market_runs") if run_id else None
+    if run and (run.data["request"]["mode"] != "MANUAL" or run.version != body.expected_version):
+        raise BusinessError("VERSION_CONFLICT", "只能更新当前版本的人工报价", 409)
     items = []
+    identities = set()
     for quote in body.quotes:
         url = safe_url(quote.url, quote.platform)
         if not url:
             raise BusinessError("INVALID_PLATFORM_URL", f"请输入{PLATFORMS[quote.platform]}的商品链接")
         observed_at = quote.observed_at or captured_at
-        if observed_at > captured_at + timedelta(minutes=5):
+        if observed_at > captured_at:
             raise BusinessError("INVALID_OBSERVATION_DATE", "采集时间不能晚于当前时间")
+        item_id = quote_identity(quote.platform, url, quote.variant_key)
+        if item_id in identities:
+            raise BusinessError("DUPLICATE_QUOTE", "同一链接与SKU已录入，请在同一条报价中填写阶梯和优惠条件")
+        identities.add(item_id)
         items.append(
             {
-                "id": quote.platform + ":" + fingerprint([url, quote.title])[:24],
+                "id": item_id,
                 "external_id": "",
                 "platform": quote.platform,
                 "title": quote.title,
                 "url": url,
                 "price": money(quote.price),
+                "variant_key": quote.variant_key,
+                "price_kind": quote.price_kind,
+                "eligibility_verified": quote.eligibility_verified,
+                "conditions": quote.conditions,
                 "promotion_price": None,
                 "currency": "CNY",
                 "currency_inferred": False,
@@ -110,8 +133,11 @@ def save_manual_run(db, workspace, body):
                 "shipping": money(quote.shipping) if quote.shipping is not None else None,
                 "shipping_region": quote.shipping_region,
                 "min_order": quote.min_order,
-                "price_tiers": [],
-                "seller": "",
+                "price_tiers": [
+                    {"min_quantity": tier.min_quantity, "price": money(tier.price)}
+                    for tier in sorted(quote.price_tiers, key=lambda tier: tier.min_quantity)
+                ],
+                "seller": quote.seller,
                 "seller_id": "",
                 "dropship": None,
                 "observed_at": observed_at.isoformat(),
@@ -121,7 +147,7 @@ def save_manual_run(db, workspace, body):
                 "warnings": ["人工采集的平台报价，价格、条件及规格以所留凭据为准"],
             }
         )
-    platforms = [quote.platform for quote in body.quotes]
+    platforms = list(dict.fromkeys(quote.platform for quote in body.quotes))
     timestamp = captured_at.isoformat()
     return persist(
         db,
@@ -137,10 +163,12 @@ def save_manual_run(db, workspace, body):
             "provider_version": "",
             "calls_reserved": 0,
             "call_limit": 0,
-            "created_at": timestamp,
+            "created_at": run.data["created_at"] if run else timestamp,
             "finished_at": timestamp,
         },
-        action="market_quotes_recorded",
+        entity=run,
+        expected_version=run.version if run else None,
+        action="market_quotes_updated" if run else "market_quotes_recorded",
     )
 
 
@@ -305,7 +333,8 @@ def make_report(db, workspace, run_id, body):
         current = (
             bool(connection.get("enabled")) and connection.get("version") == run.data["provider_version"]
         )
-    result = analyze(supply, retail, body, mode, current)
+    quote_hours = config_for(db, workspace).data["config"]["freshness"]["price_hours"]
+    result = analyze(supply, retail, body, mode, current, quote_hours)
     payload = body.model_dump(mode="json")
     data = {
         "market_run_id": run.id,
@@ -324,21 +353,95 @@ def make_report(db, workspace, run_id, body):
     return persist(db, workspace, "market_reports", data, action="market_analysis")
 
 
+def report_expires_at(db, workspace, report):
+    hours = config_for(db, workspace).data["config"]["freshness"]["price_hours"]
+    return min(iso(report.data[key]["observed_at"]) for key in ("supply", "retail")) + timedelta(hours=hours)
+
+
+def require_report_current(db, workspace, report):
+    data = report.data
+    if report_expires_at(db, workspace, report) <= now():
+        raise BusinessError("QUOTE_STALE", "报价已过期，请重新查询后再保存业务候选", 409)
+    run = get(db, workspace, data["market_run_id"], "market_runs")
+    if run.version != data["run_version"]:
+        current_items = {item["id"]: item for item in run.data["items"]}
+        if any(current_items.get(data[key]["id"]) != data[key] for key in ("supply", "retail")):
+            raise BusinessError("QUOTE_REVISED", "原报价已更新，请根据新报价重新核验", 409)
+    if data["mode"] == "LIVE":
+        current = read_connection()
+        if not current.get("enabled") or current.get("version") != data["provider_version"]:
+            raise BusinessError("CONNECTION_REVISED", "连接已变更，请重新查询核验", 409)
+
+
+def publish_retail_quote(db, workspace, report, sku, evidence):
+    data = report.data
+    item, inputs, result = data["retail"], data["inputs"], data["result"]
+    if result["retail_unit_price"] is None:
+        return
+    listing, _ = save(
+        db,
+        workspace,
+        "listings",
+        {
+            "platform": PLATFORMS[item["platform"]],
+            "external_id": item["external_id"] or quote_identity(item["platform"], item["url"], ""),
+            "external_sku_id": inputs["retail_sku"] or item.get("variant_key") or item["id"],
+            "title": item["title"],
+            "url": item["url"],
+            "quantity": result["retail_pack"],
+            "attributes": result["retail_attributes"],
+        },
+        upsert=True,
+    )
+    match, _ = save(
+        db,
+        workspace,
+        "matches",
+        {
+            "listing_id": listing.id,
+            "sku_id": sku.id,
+            "evidence_id": evidence.id,
+            "reason": inputs["verification_reason"],
+        },
+        upsert=True,
+    )
+    review_match(
+        db,
+        workspace,
+        match.id,
+        MatchReview(
+            state="MATCHED",
+            evidence_id=evidence.id,
+            reason=inputs["verification_reason"],
+            expected_version=match.version,
+        ),
+    )
+    price_data = {
+        "listing_id": listing.id,
+        "evidence_id": evidence.id,
+        "observed_at": item["observed_at"],
+        "region": inputs["region"],
+        "quantity": result["retail_pack"],
+        "price_kind": item.get("price_kind", "LIST"),
+        "price": result["retail_unit_price"],
+        "shipping": result.get("retail_shipping", inputs.get("retail_shipping")),
+        "conditions": item.get("conditions", ""),
+        "eligibility_verified": item.get("eligibility_verified", False),
+    }
+    price, _ = save(db, workspace, "prices", price_data, upsert=True)
+    if price.data["evidence_id"] != evidence.id:
+        save(db, workspace, "prices", price_data, entity=price, expected_version=price.version)
+
+
 def promote_report(db, workspace, report_id, body):
-    report = get(db, workspace, report_id, "market_reports")
+    report = db.scalar(query(workspace, "market_reports").where(Entity.id == report_id).with_for_update())
+    if report is None:
+        raise BusinessError("NOT_FOUND", "记录不存在或不属于当前数据空间", 404)
     result, source_data = report.data["result"], report.data
     if source_data.get("candidate_id"):
         return get(db, workspace, source_data["candidate_id"], "candidates")
-    if any(
-        (now() - iso(source_data[k]["observed_at"])).total_seconds() > 86400 for k in ["supply", "retail"]
-    ):
-        raise BusinessError("QUOTE_STALE", "报价已过期，请重新查询后再保存业务候选", 409)
+    require_report_current(db, workspace, report)
     mode = source_data["mode"]
-    if mode == "LIVE":
-        run = get(db, workspace, source_data["market_run_id"], "market_runs")
-        current = require_connection()
-        if current["version"] != run.data["provider_version"]:
-            raise BusinessError("CONNECTION_REVISED", "连接已变更，请重新查询核验", 409)
     if result["match_state"] != "CONFIRMED" or result["conflicts"]:
         raise BusinessError("MATCH_REQUIRED", "请先核验同款规格，再保存为业务候选", 409)
     source_name = {"DEMO": "模拟联网选品演练", "LIVE": "OneBound联网选品", "MANUAL": "人工采集平台报价"}[mode]
@@ -368,10 +471,9 @@ def promote_report(db, workspace, report_id, body):
             "source_id": source.id,
             "locator": "market-report:" + report.id,
             "observed_at": source_data["created_at"],
-            "expires_at": (
-                min(iso(source_data[k]["observed_at"]) for k in ["supply", "retail"]) + timedelta(hours=24)
-            ).isoformat(),
+            "expires_at": report_expires_at(db, workspace, report).isoformat(),
             "note": source_data["inputs"]["verification_reason"],
+            "market_report_id": report.id,
         },
     )
     product, _ = save(db, workspace, "products", {"name": body.name, "category": body.category}, upsert=True)
@@ -396,7 +498,9 @@ def promote_report(db, workspace, report_id, body):
             "candidates",
             {
                 "sku_id": sku.id,
-                "note": "来自找货与比价报告。样品、主备供货及风险仍需核验。报告：" + report.id,
+                "procurement_mode": source_data["inputs"]["procurement_mode"],
+                "market_report_id": report.id,
+                "note": "来自找货与比价报告。样品、主备供货及风险仍需核验。",
             },
         )
     persist(
@@ -408,4 +512,66 @@ def promote_report(db, workspace, report_id, body):
         expected_version=report.version,
         action="market_candidate_saved",
     )
+    publish_retail_quote(db, workspace, report, sku, evidence)
     return candidate
+
+
+def report_draft(db, workspace, report, candidate):
+    data = report.data
+    inputs, result, supply = data["inputs"], data["result"], data["supply"]
+    draft = {
+        "report_id": report.id,
+        "supply_title": supply["title"],
+        "supply_url": supply["url"],
+        "mode": inputs["procurement_mode"],
+        "reference_count_ready": result.get("retail_total") is not None,
+        "stale_reason": None,
+        "offer": None,
+        "normal": None,
+        "stress": None,
+    }
+    try:
+        require_report_current(db, workspace, report)
+        evidence_id = data.get("evidence_id")
+        if evidence_id:
+            require_evidence(db, workspace, evidence_id)
+    except BusinessError as exc:
+        return {**draft, "stale_reason": exc.message}
+    stock = inputs["procurement_mode"] == "STOCK"
+    if candidate_mode(candidate) != inputs["procurement_mode"]:
+        return {**draft, "stale_reason": "候选采购方式与报告不一致，请在研究阶段调整"}
+    incoming, outgoing = decimal(inputs.get("inbound_shipping")), decimal(inputs.get("outbound_shipping"))
+    delivery = money(incoming + outgoing) if incoming is not None and outgoing is not None else None
+    draft["offer"] = {
+        "sku_id": candidate.data["sku_id"],
+        "quantity": result["retail_pack"],
+        "evidence_id": evidence_id,
+        "procurement_mode": inputs["procurement_mode"],
+        "unit_cost": result["supply_unit_price"],
+        "shipping": inputs.get("inbound_shipping") if stock else delivery,
+        "outbound_shipping": inputs.get("outbound_shipping") if stock else None,
+        "supplier_pack": result["supply_pack"] if stock else None,
+        "batch_quantity": inputs["purchase_quantity"] if stock else None,
+        "min_order": result["min_order"],
+        "region": inputs["region"],
+        "expires_at": report_expires_at(db, workspace, report).isoformat(),
+        "verified": False,
+    }
+    for key in ("normal", "stress"):
+        values = dict(result.get(key + "_inputs") or {})
+        if not stock and result["algorithm_version"] == "sourcing-economics-1.0" and incoming is not None:
+            if values.get("c") is not None and values.get("f") is not None:
+                moved = incoming * decimal("1.1" if key == "stress" else "1")
+                values.update(c=decimal(values["c"]) - moved, f=decimal(values["f"]) + moved)
+        draft[key] = {
+            **{
+                k: money(v) if k not in {"fee_rate", "r"} else float(v)
+                for k, v in values.items()
+                if v is not None
+            },
+            "candidate_id": candidate.id,
+            "evidence_id": evidence_id,
+            "label": key.upper(),
+            "note": "来自比价报告 " + report.id,
+        }
+    return draft

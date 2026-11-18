@@ -3,7 +3,7 @@
 from decimal import Decimal as D
 
 from app.db import now
-from app.domain import iso, match_conflicts, money, normalize_attribute, profit
+from app.domain import decimal, iso, match_conflicts, money, normalize_attribute, profit, stock_batch
 from app.errors import BusinessError
 
 
@@ -22,7 +22,7 @@ def variant(item, variant_id):
     }
 
 
-def analyze(supply, retail, body, mode, connection_current=True):
+def analyze(supply, retail, body, mode, connection_current=True, quote_hours=24):
     s, r = variant(supply, body.supply_sku), variant(retail, body.retail_sku)
     sa, ra = {**s["attributes"], **body.supply_attributes}, {**r["attributes"], **body.retail_attributes}
     # Preserve supplier-only properties in the snapshot; compare shared canonical specifications.
@@ -70,9 +70,26 @@ def analyze(supply, retail, body, mode, connection_current=True):
         used_tier, supply_price = None, body.supply_price
     retail_price = body.retail_price if body.retail_price is not None else r.get("price")
     unit_cost = D(str(supply_price)) * D(rp) / D(sp) if supply_price is not None and sp and rp else None
-    sale_price = body.sale_price if body.sale_price is not None else retail_price
+    retail_shipping = body.retail_shipping
+    if retail_shipping is None and retail.get("shipping_region") == body.region:
+        retail_shipping = decimal(retail.get("shipping"))
+    eligible = retail.get("price_kind", "LIST") == "LIST" or retail.get("eligibility_verified")
+    if not eligible:
+        retail_price = None
+    retail_total = (
+        decimal(retail_price) + retail_shipping
+        if retail_price is not None and retail_shipping is not None
+        else None
+    )
+    sale_price = (
+        body.sale_price
+        if body.sale_price is not None
+        else (retail_total if retail_total is not None else retail_price)
+    )
     min_order = body.min_order or supply["min_order"]
     blocked, pending = [], []
+    if not eligible:
+        pending.append("竞品优惠资格未核验")
     if state != "CONFIRMED":
         (blocked if state == "CONFLICT" else pending).append(
             "同款规格尚未确认" if state != "CONFLICT" else "规格冲突"
@@ -93,22 +110,29 @@ def analyze(supply, retail, body, mode, connection_current=True):
         pending.append("商品详情未完整获取")
     if supply["currency"] != "CNY" or retail["currency"] != "CNY":
         blocked.append("当前测算只支持人民币，请勿直接混算币种")
-        unit_cost, retail_price, sale_price, supply_price = None, None, None, None
+        unit_cost, retail_price, sale_price, supply_price, retail_total = None, None, None, None, None
     if not connection_current:
         pending.append("平台连接已更新或停用，请重新查询")
-    if any((now() - iso(item["observed_at"])).total_seconds() > 86400 for item in [supply, retail]):
-        pending.append("报价采集已超过24小时，请重新查询")
+    if any(
+        (now() - iso(item["observed_at"])).total_seconds() > quote_hours * 3600 for item in [supply, retail]
+    ):
+        pending.append(f"报价采集已超过{quote_hours}小时，请重新查询")
     incoming = body.inbound_shipping
-    incoming_per_order = (
-        incoming / D(body.purchase_quantity) * D(rp) / D(sp) if incoming is not None and sp and rp else None
-    )
-    procurement_cost = (
-        unit_cost + incoming_per_order if unit_cost is not None and incoming_per_order is not None else None
-    )
+    dispatch, sellable, batch_cost = body.outbound_shipping, None, None
+    if body.procurement_mode == "DROPSHIP":
+        procurement_cost = unit_cost
+        dispatch = incoming + dispatch if incoming is not None and dispatch is not None else None
+    else:
+        procurement_cost = None
+        sellable = body.purchase_quantity * sp // rp if sp and rp else None
+        if supply_price is not None and incoming is not None and sp and rp:
+            sellable, batch_cost, procurement_cost = stock_batch(
+                body.purchase_quantity, sp, rp, decimal(supply_price), incoming
+            )
     raw_inputs = {
         "p": sale_price,
         "c": procurement_cost,
-        "f": body.outbound_shipping,
+        "f": dispatch,
         "b": body.packaging,
         "t": body.fees,
         "a": body.advertising,
@@ -129,6 +153,7 @@ def analyze(supply, retail, body, mode, connection_current=True):
     normal, stress, stress_inputs = None, None, None
     if not incomplete:
         exact = {k: str(v) for k, v in raw_inputs.items()}
+        exact["fee_rate"] = str(body.fee_rate)
         normal = profit(exact)
         stress_inputs = {
             **exact,
@@ -150,11 +175,6 @@ def analyze(supply, retail, body, mode, connection_current=True):
     sticker_spread = (
         D(str(retail_price)) - unit_cost if retail_price is not None and unit_cost is not None else None
     )
-    retail_total = (
-        D(str(retail_price)) + body.retail_shipping
-        if retail_price is not None and body.retail_shipping is not None
-        else None
-    )
     cash = None
     if supply_price is not None and incoming is not None and body.ad_budget is not None:
         cash = D(str(supply_price)) * body.purchase_quantity + incoming + body.ad_budget
@@ -169,16 +189,23 @@ def analyze(supply, retail, body, mode, connection_current=True):
         recommendation = "DEMO_ONLY"
         cautions.insert(0, "全部价格和商品均为模拟数据，不能作为实际采购依据。")
     return {
-        "algorithm_version": "sourcing-economics-1.0",
+        "algorithm_version": "sourcing-economics-1.1",
         "match_state": state,
         "conflicts": conflicts,
         "missing_attributes": sorted(set(missing)),
         "normal": normal,
         "stress": stress,
-        "normal_inputs": {k: str(v) if v is not None else None for k, v in raw_inputs.items()},
+        "normal_inputs": {
+            **{k: str(v) if v is not None else None for k, v in raw_inputs.items()},
+            "fee_rate": str(body.fee_rate),
+        },
         "stress_inputs": stress_inputs,
         "sticker_spread": money(sticker_spread) if sticker_spread is not None else None,
         "retail_total": money(retail_total) if retail_total is not None else None,
+        "retail_shipping": money(retail_shipping) if retail_shipping is not None else None,
+        "retail_eligible": bool(eligible),
+        "sellable_units": sellable,
+        "stock_batch_cost": money(batch_cost) if batch_cost is not None else None,
         "procurement_cost_per_sale_pack": money(procurement_cost) if procurement_cost is not None else None,
         "supply_unit_price": money(supply_price) if supply_price is not None else None,
         "retail_unit_price": money(retail_price) if retail_price is not None else None,

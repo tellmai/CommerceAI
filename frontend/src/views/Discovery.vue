@@ -12,6 +12,7 @@ import MarketQuotes from '../components/MarketQuotes.vue'
 
 const router = useRouter(), route = useRoute()
 const connection = ref<MarketConnection | null>(null), connectionOpen = ref(false), manualOpen = ref(false)
+const quoteRevision = ref<MarketRun | null>(null)
 const query = ref('牙刷'), perPlatform = ref(3), platforms = ref<Platform[]>(Object.keys(platformNames) as Platform[])
 const active = ref<MarketRun | null>(null), runs = ref<MarketRun[]>([]), reports = ref<MarketReport[]>([])
 const report = ref<MarketReport | null>(null), batchReports = ref<MarketReport[]>([])
@@ -22,7 +23,7 @@ const values = reactive<Record<string, any>>({ purchase_quantity: 1, procurement
   dropship_verified: false, supply_pack: null, retail_pack: null, allow_repack: false, match_confirmed: false,
   verification_reason: '', supply_price: null, retail_price: null, retail_shipping: null, sale_price: null,
   inbound_shipping: null, outbound_shipping: null, packaging: null, fees: null, advertising: null,
-  refund_rate: null, refund_loss: null, ad_budget: null, region: '全国' })
+  refund_rate: null, refund_loss: null, ad_budget: null, region: '全国', fee_rate: 0 })
 const costs: Record<string, string> = {
   sale_price: '你的预计售价（留空采用选中零售SKU价）', retail_shipping: '竞品运费（用于比较竞品到手价）',
   inbound_shipping: '整批进货运费（代发为供应商直发运费）', outbound_shipping: '每销售包装的额外发货运费',
@@ -52,8 +53,12 @@ async function initialize() {
   try {
     connection.value = await request('/market/connection')
     await loadHistory()
-    if (typeof route.query.report === 'string') report.value = await request('/market/reports/' + route.query.report)
+    if (typeof route.query.report === 'string') await loadReport(route.query.report)
   } catch (e: any) { error.value = e.message }
+}
+async function loadReport(id: string) {
+  try { report.value = await request('/market/reports/' + id) }
+  catch (e: any) { error.value = e.message }
 }
 async function loadRun(id: string, reset = false) {
   if (reset && timer) { clearInterval(timer); timer = undefined }
@@ -98,6 +103,7 @@ function updateSelection() {
   values.supply_pack = supply.value?.pack_count ?? null; values.retail_pack = retail.value?.pack_count ?? null
   values.min_order = supply.value?.min_order ?? null
   values.supply_price = null; values.retail_price = null
+  values.inbound_shipping = null; values.retail_shipping = null; values.dropship_verified = false
   values.match_confirmed = false; values.verification_reason = ''
   supplyAttrs.value = defaultAttrs(supply.value); retailAttrs.value = defaultAttrs(retail.value)
   report.value = null; batchReports.value = []
@@ -112,6 +118,10 @@ watch(retailSku, value => {
   retailAttrs.value = defaultAttrs(retail.value, value)
   values.retail_pack = retail.value?.variants.find(v => v.id === value)?.pack_count ?? retail.value?.pack_count ?? null
   values.match_confirmed = false; values.retail_price = null; report.value = null
+})
+watch(() => values.procurement_mode, () => {
+  values.purchase_quantity = 1; values.supply_price = null; values.inbound_shipping = null
+  values.outbound_shipping = null; values.dropship_verified = false; report.value = null
 })
 function payload(): CompareInput {
   const result = { ...values }
@@ -131,21 +141,26 @@ function describeError(e: any) {
         verification_reason: '核验理由与价格依据' } as Record<string, string>)[key] || key
     }).join('、') : '')
 }
-async function compare(all = false) {
+async function compare(group: 'retail' | 'supply' | 'selected' = 'selected') {
   if (!active.value) return
   analyzing.value = true; error.value = ''; batchReports.value = []
   try {
     const input = payload()
-    if (all) {
-      for (const item of retailItems.value) {
-        const selected = item.id === retailId.value
-        const row = await post<MarketReport>(`/market/runs/${active.value.id}/compare`, selected ? input : {
-          ...input, retail_id: item.id, retail_sku: '', retail_pack: null, retail_attributes: {},
-          retail_price: null, retail_shipping: null, match_confirmed: false,
-        })
+    if (group !== 'selected') {
+      const referenceId = group === 'retail' ? retailId.value : supplyId.value
+      for (const item of group === 'retail' ? retailItems.value : supplyItems.value) {
+        const changes = group === 'retail' ? {
+          retail_id: item.id, retail_sku: '', retail_pack: null, retail_attributes: {},
+          retail_price: null, retail_shipping: null,
+        } : {
+          supply_id: item.id, supply_sku: '', supply_pack: null, supply_attributes: {},
+          supply_price: null, min_order: null, inbound_shipping: null, dropship_verified: false,
+        }
+        const row = await post<MarketReport>(`/market/runs/${active.value.id}/compare`,
+          item.id === referenceId ? input : {...input, ...changes, match_confirmed: false})
         batchReports.value.push(row)
       }
-      report.value = batchReports.value.find(r => r.data.retail.id === retailId.value) || batchReports.value[0] || null
+      report.value = batchReports.value.find(r => r.data.retail.id === retailId.value && r.data.supply.id === supplyId.value) || null
     } else report.value = await post(`/market/runs/${active.value.id}/compare`, input)
     await loadHistory(); ElMessage.success('分析报告已保存，历史结果保留原输入')
   } catch (e: any) { error.value = describeError(e) }
@@ -195,7 +210,8 @@ onUnmounted(() => { disposed = true; if (timer) clearInterval(timer) })
     </el-form>
     <div class="market-links"><span class="muted">免费人工检索（可能需要平台登录）：</span>
       <a v-for="(name, key) in platformNames" :key="key" :href="platformSearch(key as Platform, query)" target="_blank" rel="noopener noreferrer">前往{{ name }} ↗</a>
-      <el-button v-if="space === 'live'" type="primary" :disabled="!query.trim() || jobActive" @click="manualOpen = true">录入平台报价</el-button>
+      <el-button v-if="space === 'live'" type="primary" :disabled="!query.trim() || jobActive" @click="quoteRevision = null; manualOpen = true">录入平台报价</el-button>
+      <el-button v-if="active?.data.request.mode === 'MANUAL'" @click="quoteRevision = active; manualOpen = true">更新本组报价</el-button>
     </div>
     <p v-if="liveReady && space === 'live'" class="help-note">联网查询最多 {{ platforms.length * (perPlatform + 1) }} 次接口请求。保存报告和重新测算使用本地报价快照。</p>
     <template v-if="active?.job"><el-progress :percentage="active.job.progress" :status="active.job.status === 'FAILED' ? 'exception' : undefined" />
@@ -234,6 +250,7 @@ onUnmounted(() => { disposed = true; if (timer) clearInterval(timer) })
       <el-form-item label="采购价补录（每个货源包装）"><el-input v-model="values.supply_price" placeholder="通常留空，采用所选SKU或适用阶梯价" /></el-form-item>
       <el-form-item label="竞品价格补录（每个零售包装）"><el-input v-model="values.retail_price" placeholder="通常留空；补录须在下方注明依据" /></el-form-item>
       <el-form-item v-for="(label, key) in costs" :key="key" :label="label"><el-input v-model="values[key]" placeholder="未知请留空，确认无费用才填0"><template #prefix>¥</template></el-input></el-form-item>
+      <el-form-item label="按成交价计的平台费率（0–1）"><el-input-number v-model="values.fee_rate" :min="0" :max="1" :precision="4" :controls="false" /></el-form-item>
       <el-form-item label="售后损失概率（0–1）"><el-input-number v-model="values.refund_rate" :min="0" :max="1" :step="0.01" :controls="false" placeholder="未知" /></el-form-item>
       <el-form-item label="规格与履约核验" class="full"><div class="market-checks">
         <el-checkbox v-model="values.allow_repack">允许拆包重组（需另行核验包装与履约）</el-checkbox>
@@ -243,14 +260,15 @@ onUnmounted(() => { disposed = true; if (timer) clearInterval(timer) })
       <el-form-item label="核验理由与价格依据" class="full"><el-input v-model="values.verification_reason" type="textarea" :rows="2" placeholder="确认同款至少填写5字；人工价格补录需注明凭据位置和核验情况" /></el-form-item>
     </el-form>
     <div class="form-actions"><span class="muted">压力情景：售价−10%、采购+10%、广告+25%、售后概率+5个百分点、售后净损失+10%。</span>
-      <el-button @click="compare(true)" :loading="analyzing" :disabled="!ready">对比全部零售候选</el-button>
-      <el-button type="primary" @click="compare(false)" :loading="analyzing" :disabled="!ready">分析所选产品并保存报告</el-button>
+      <el-button v-if="supplyItems.length > 1" @click="compare('supply')" :loading="analyzing" :disabled="!ready">对比全部1688货源</el-button>
+      <el-button v-if="retailItems.length > 1" @click="compare('retail')" :loading="analyzing" :disabled="!ready">对比全部零售候选</el-button>
+      <el-button type="primary" @click="compare('selected')" :loading="analyzing" :disabled="!ready">分析所选产品并保存报告</el-button>
     </div>
   </section>
 
   <section v-if="batchReports.length" class="panel mt24"><div class="panel-heading"><h3>跨平台测算对比</h3><span class="muted">每个报告分别保存，未核验的规格不视为已确认同款</span></div>
     <el-table :data="batchReports"><el-table-column label="平台" width="100"><template #default="{ row }">{{ platformNames[row.data.retail.platform as Platform] }}</template></el-table-column>
-      <el-table-column label="商品" min-width="240"><template #default="{ row }">{{ row.data.retail.title }}</template></el-table-column>
+      <el-table-column label="商品" min-width="240"><template #default="{ row }">{{ row.data.supply.seller || row.data.supply.title }} → {{ row.data.retail.title }}</template></el-table-column>
       <el-table-column label="折算裸价差"><template #default="{ row }">¥{{ amount(row.data.result.sticker_spread) }}</template></el-table-column>
       <el-table-column label="预计正常贡献"><template #default="{ row }">{{ row.data.result.normal ? '¥' + row.data.result.normal.display_contribution : '费用不完整' }}</template></el-table-column>
       <el-table-column label="结论"><template #default="{ row }">{{ recommendationNames[row.data.result.recommendation] }}</template></el-table-column>
@@ -270,6 +288,7 @@ onUnmounted(() => { disposed = true; if (timer) clearInterval(timer) })
       :description="report.data.mode === 'DEMO' ? '全部数据为模拟，不能据此采购。' : '结论针对当前输入和报价；不保证销量或实际利润。'" />
     <el-alert v-if="reportExpired" title="历史报价已超过24小时，请更新报价后决策" type="warning" :closable="false" class="mb16" />
     <el-alert v-if="reportConnectionChanged" title="此历史报告的平台连接已变更或停用，请重新查询核验" type="warning" :closable="false" class="mb16" />
+    <el-alert v-if="report.data.stale_reason" :title="report.data.stale_reason" type="warning" :closable="false" class="mb16" />
     <div class="mini-metrics"><div><span>折算裸价差（尚未扣全部费用）</span><strong>¥{{ amount(report.data.result.sticker_spread) }}</strong></div>
       <div><span>预计正常贡献 / 压力贡献</span><strong>{{ report.data.result.normal ? '¥' + report.data.result.normal.display_contribution : '费用不完整' }} / {{ report.data.result.stress ? '¥' + report.data.result.stress.display_contribution : '—' }}</strong></div>
       <div><span>采购与投放初始现金</span><strong>¥{{ amount(report.data.result.initial_cash) }}</strong></div>
@@ -280,6 +299,7 @@ onUnmounted(() => { disposed = true; if (timer) clearInterval(timer) })
       <a v-if="report.data.retail.url" :href="report.data.retail.url" target="_blank" rel="noopener noreferrer">查看{{ platformNames[report.data.retail.platform] }}报价来源 ↗</a>
     </div>
     <el-descriptions :column="2" border><el-descriptions-item label="折算每销售包装采购成本（含进货运费）">¥{{ amount(report.data.result.procurement_cost_per_sale_pack) }}</el-descriptions-item>
+      <el-descriptions-item v-if="report.data.inputs.procurement_mode === 'STOCK'" label="该批可售套数">{{ report.data.result.sellable_units ?? '待核验' }}</el-descriptions-item>
       <el-descriptions-item label="竞品到手价">¥{{ amount(report.data.result.retail_total) }}</el-descriptions-item>
       <el-descriptions-item label="盈亏平衡CAC">{{ report.data.result.normal ? '¥' + amount(report.data.result.normal.max_cac) : '费用不完整' }}</el-descriptions-item>
       <el-descriptions-item label="同款状态">{{ { CONFIRMED: '人工核验已确认', CONFLICT: '规格有冲突', UNVERIFIED: '待核验' }[report.data.result.match_state] }}</el-descriptions-item>
@@ -302,11 +322,11 @@ onUnmounted(() => { disposed = true; if (timer) clearInterval(timer) })
         <el-table-column label="产品"><template #default="{ row }">{{ row.data.query }}</template></el-table-column>
         <el-table-column label="比较平台"><template #default="{ row }">1688 → {{ platformNames[row.data.retail.platform as Platform] }}</template></el-table-column>
         <el-table-column label="结论"><template #default="{ row }">{{ recommendationNames[row.data.result.recommendation] }}</template></el-table-column>
-        <el-table-column label="操作" width="90"><template #default="{ row }"><el-button link @click="report = row">查看报告</el-button></template></el-table-column>
+        <el-table-column label="操作" width="90"><template #default="{ row }"><el-button link @click="loadReport(row.id)">查看报告</el-button></template></el-table-column>
       </el-table></el-tab-pane></el-tabs>
   </section>
   <MarketConnectionEditor v-model="connectionOpen" :connection="connection" @saved="value => connection = value" />
-  <MarketManualQuotes v-model="manualOpen" :query="query" @saved="run => loadRun(run.id, true)" />
+  <MarketManualQuotes v-model="manualOpen" :query="query" :editing="quoteRevision" @saved="run => loadRun(run.id, true)" />
   <el-dialog v-model="promoteOpen" title="保存为研究候选" width="500px"><el-form label-position="top">
     <el-form-item label="候选名称"><el-input v-model="candidateName" /></el-form-item><el-form-item label="商品类目"><el-input v-model="category" /></el-form-item>
   </el-form><template #footer><el-button type="primary" @click="promote" :loading="analyzing">保存候选</el-button></template></el-dialog>

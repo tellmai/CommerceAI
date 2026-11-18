@@ -226,6 +226,14 @@ paths:
           - type: string
           - type: 'null'
           title: Report Id
+      - name: region
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Region
       - name: x-workspace
         in: header
         required: false
@@ -284,6 +292,207 @@ paths:
       security:
       - sessionCookie: []
         csrfHeader: []
+  /api/v1/forecasts:
+    get:
+      tags:
+      - 经营预测
+      summary: Forecast List
+      operationId: forecast_list_api_v1_forecasts_get
+      parameters:
+      - name: candidate_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Candidate Id
+      - name: search
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 100
+          default: ''
+          title: Search
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+          title: Page
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Page Size
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityPage'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+    post:
+      tags:
+      - 经营预测
+      summary: Forecast Create
+      operationId: forecast_create_api_v1_forecasts_post
+      parameters:
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForecastSave'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
+  /api/v1/forecasts/traffic:
+    get:
+      tags:
+      - 经营预测
+      summary: Forecast Traffic
+      operationId: forecast_traffic_api_v1_forecasts_traffic_get
+      parameters:
+      - name: candidate_id
+        in: query
+        required: true
+        schema:
+          type: string
+          title: Candidate Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+  /api/v1/forecasts/{forecast_id}:
+    get:
+      tags:
+      - 经营预测
+      summary: Forecast Detail
+      operationId: forecast_detail_api_v1_forecasts__forecast_id__get
+      parameters:
+      - name: forecast_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Forecast Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+  /api/v1/forecasts/{forecast_id}/replay:
+    get:
+      tags:
+      - 经营预测
+      summary: Forecast Replay
+      operationId: forecast_replay_api_v1_forecasts__forecast_id__replay_get
+      parameters:
+      - name: forecast_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Forecast Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForecastResult'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
   /api/v1/profit/cashflow:
     post:
       summary: Calculate Cashflow
@@ -5152,6 +5361,48 @@ paths:
       security:
       - sessionCookie: []
         csrfHeader: []
+  /api/v1/market/runs/{run_id}/quotes:
+    put:
+      tags:
+      - 联网选品
+      summary: Revise Quotes
+      operationId: revise_quotes_api_v1_market_runs__run_id__quotes_put
+      parameters:
+      - name: run_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Run Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ManualRunRevision'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
   /api/v1/market/runs/{run_id}:
     get:
       tags:
@@ -5387,6 +5638,41 @@ paths:
       - sessionCookie: []
 components:
   schemas:
+    AlternativePrice:
+      properties:
+        low:
+          anyOf:
+          - type: number
+            maximum: 1.0
+            minimum: 0.0
+          - type: string
+          title: Low
+        base:
+          anyOf:
+          - type: number
+            maximum: 1.0
+            minimum: 0.0
+          - type: string
+          title: Base
+        high:
+          anyOf:
+          - type: number
+            maximum: 1.0
+            minimum: 0.0
+          - type: string
+          title: High
+        price:
+          type: string
+          pattern: ^\d+(\.\d{1,4})?$
+          title: Price
+      additionalProperties: false
+      type: object
+      required:
+      - low
+      - base
+      - high
+      - price
+      title: AlternativePrice
     Assessment:
       properties:
         candidate_id:
@@ -5543,6 +5829,18 @@ components:
         sku_id:
           type: string
           title: Sku Id
+        procurement_mode:
+          type: string
+          enum:
+          - STOCK
+          - DROPSHIP
+          title: Procurement Mode
+          default: DROPSHIP
+        market_report_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Market Report Id
         keyword_id:
           anyOf:
           - type: string
@@ -5747,6 +6045,14 @@ components:
             pattern: ^\d+(\.\d{1,4})?$
           - type: 'null'
           title: Fees
+        fee_rate:
+          anyOf:
+          - type: number
+            maximum: 1.0
+            minimum: 0.0
+          - type: string
+          title: Fee Rate
+          default: 0
         advertising:
           anyOf:
           - type: string
@@ -5948,6 +6254,11 @@ components:
           maxLength: 3000
           title: Note
           default: ''
+        market_report_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Market Report Id
       additionalProperties: false
       type: object
       required:
@@ -5974,6 +6285,11 @@ components:
         candidate_id:
           type: string
           title: Candidate Id
+        forecast_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Forecast Id
         start_at:
           type: string
           format: date-time
@@ -6059,6 +6375,36 @@ components:
             type: string
           type: array
           title: Notices
+        procurement_mode:
+          type: string
+          enum:
+          - STOCK
+          - DROPSHIP
+          title: Procurement Mode
+        region:
+          type: string
+          title: Region
+        stock_units:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Stock Units
+        stock_batch_cash:
+          anyOf:
+          - type: string
+            pattern: ^\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: Stock Batch Cash
+        records:
+          additionalProperties:
+            type: integer
+          type: object
+          title: Records
+        expires_at:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Expires At
       additionalProperties: false
       type: object
       required:
@@ -6070,6 +6416,9 @@ components:
       - source
       - source_id
       - notices
+      - procurement_mode
+      - region
+      - records
       title: ForecastBaseline
     ForecastCosts:
       properties:
@@ -6097,6 +6446,10 @@ components:
             pattern: ^\d+(\.\d{1,4})?$
           - type: 'null'
           title: T
+        fee_rate:
+          type: number
+          title: Fee Rate
+          default: 0.0
         a:
           anyOf:
           - type: string
@@ -6143,6 +6496,14 @@ components:
             pattern: ^\d+(\.\d{1,4})?$
           - type: 'null'
           title: T
+        fee_rate:
+          anyOf:
+          - type: number
+            maximum: 1.0
+            minimum: 0.0
+          - type: string
+          title: Fee Rate
+          default: 0
         a:
           anyOf:
           - type: string
@@ -6196,6 +6557,81 @@ components:
           - type: string
           - type: 'null'
           title: Report Id
+        procurement_mode:
+          anyOf:
+          - type: string
+            enum:
+            - STOCK
+            - DROPSHIP
+          - type: 'null'
+          title: Procurement Mode
+        region:
+          anyOf:
+          - type: string
+            maxLength: 500
+            minLength: 1
+          - type: 'null'
+          title: Region
+        refund_amount_rate:
+          anyOf:
+          - type: number
+            maximum: 1.0
+            minimum: 0.0
+          - type: string
+          - type: 'null'
+          title: Refund Amount Rate
+        channel:
+          anyOf:
+          - type: string
+            maxLength: 500
+            minLength: 1
+          - type: 'null'
+          title: Channel
+        stock_units:
+          anyOf:
+          - type: integer
+            maximum: 1000000000000.0
+            minimum: 0.0
+          - type: 'null'
+          title: Stock Units
+        stock_batch_cash:
+          anyOf:
+          - type: string
+            pattern: ^\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: Stock Batch Cash
+        dropship_capacity_per_day:
+          anyOf:
+          - type: integer
+            maximum: 10000000.0
+            minimum: 0.0
+          - type: 'null'
+          title: Dropship Capacity Per Day
+        settlement_days:
+          anyOf:
+          - type: integer
+            maximum: 365.0
+            minimum: 0.0
+          - type: 'null'
+          title: Settlement Days
+        advertising_budget:
+          anyOf:
+          - type: string
+            pattern: ^\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: Advertising Budget
+        refund_reserve:
+          anyOf:
+          - type: string
+            pattern: ^\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: Refund Reserve
+        alternative_prices:
+          items:
+            $ref: '#/components/schemas/AlternativePrice'
+          type: array
+          maxItems: 2
+          title: Alternative Prices
       additionalProperties: false
       type: object
       required:
@@ -6233,6 +6669,21 @@ components:
           - type: string
           - type: 'null'
           title: Max Cac
+        max_target_cac:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Max Target Cac
+        reference_price_gap:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Reference Price Gap
+        reference_cost_reduction:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Reference Cost Reduction
         unit_variable_cost:
           anyOf:
           - type: string
@@ -6285,6 +6736,11 @@ components:
             $ref: '#/components/schemas/ForecastScenario'
           type: array
           title: Scenarios
+        alternative_scenarios:
+          items:
+            $ref: '#/components/schemas/PriceForecast'
+          type: array
+          title: Alternative Scenarios
       additionalProperties: false
       type: object
       required:
@@ -6292,19 +6748,36 @@ components:
       - break_even_price
       - minimum_target_price
       - suggested_price
-      - max_purchase_cost
-      - max_cac
-      - unit_variable_cost
-      - unit_contribution
-      - unit_contribution_rate
-      - break_even_orders
+      - reference_price_gap
+      - reference_cost_reduction
       - reference_price
       - reference_count
       - missing
       - notices
       - pricing_status
       - scenarios
+      - alternative_scenarios
       title: ForecastResult
+    ForecastSave:
+      properties:
+        name:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Name
+        inputs:
+          $ref: '#/components/schemas/ForecastInput'
+        parent_forecast_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Parent Forecast Id
+      additionalProperties: false
+      type: object
+      required:
+      - name
+      - inputs
+      title: ForecastSave
     ForecastScenario:
       properties:
         name:
@@ -6320,6 +6793,17 @@ components:
         orders:
           type: integer
           title: Orders
+        demand_orders:
+          type: integer
+          title: Demand Orders
+        shortfall:
+          type: integer
+          title: Shortfall
+        remaining_stock:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Remaining Stock
         paid_revenue:
           type: string
           title: Paid Revenue
@@ -6328,6 +6812,21 @@ components:
           - type: string
           - type: 'null'
           title: Retained Revenue
+        net_revenue:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Net Revenue
+        advertising_cost:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Advertising Cost
+        cash_required:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Cash Required
         variable_cost:
           anyOf:
           - type: string
@@ -6349,8 +6848,14 @@ components:
       - name
       - conversion
       - orders
+      - demand_orders
+      - shortfall
+      - remaining_stock
       - paid_revenue
       - retained_revenue
+      - net_revenue
+      - advertising_cost
+      - cash_required
       - variable_cost
       - contribution
       - after_fixed_cost
@@ -6633,6 +7138,16 @@ components:
           maxLength: 2000
           minLength: 1
           title: Url
+        variant_key:
+          type: string
+          maxLength: 200
+          title: Variant Key
+          default: ''
+        seller:
+          type: string
+          maxLength: 200
+          title: Seller
+          default: ''
         price:
           type: string
           pattern: ^\d+(\.\d{1,4})?$
@@ -6671,6 +7186,28 @@ components:
             exclusiveMinimum: 0.0
           - type: 'null'
           title: Min Order
+        price_tiers:
+          items:
+            $ref: '#/components/schemas/PriceTier'
+          type: array
+          maxItems: 20
+          title: Price Tiers
+        price_kind:
+          type: string
+          enum:
+          - LIST
+          - ELIGIBLE
+          title: Price Kind
+          default: LIST
+        eligibility_verified:
+          type: boolean
+          title: Eligibility Verified
+          default: false
+        conditions:
+          type: string
+          maxLength: 800
+          title: Conditions
+          default: ''
         shipping:
           anyOf:
           - type: string
@@ -6713,7 +7250,7 @@ components:
           items:
             $ref: '#/components/schemas/ManualQuote'
           type: array
-          maxItems: 4
+          maxItems: 30
           minItems: 2
           title: Quotes
       additionalProperties: false
@@ -6722,6 +7259,31 @@ components:
       - query
       - quotes
       title: ManualRunInput
+    ManualRunRevision:
+      properties:
+        query:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: Query
+        quotes:
+          items:
+            $ref: '#/components/schemas/ManualQuote'
+          type: array
+          maxItems: 30
+          minItems: 2
+          title: Quotes
+        expected_version:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Expected Version
+      additionalProperties: false
+      type: object
+      required:
+      - query
+      - quotes
+      - expected_version
+      title: ManualRunRevision
     Match:
       properties:
         listing_id:
@@ -6801,8 +7363,18 @@ components:
           type: string
           title: Evidence Id
         dropship:
-          type: boolean
+          anyOf:
+          - type: boolean
+          - type: 'null'
           title: Dropship
+        procurement_mode:
+          anyOf:
+          - type: string
+            enum:
+            - STOCK
+            - DROPSHIP
+          - type: 'null'
+          title: Procurement Mode
         quantity:
           type: integer
           exclusiveMinimum: 0.0
@@ -6823,6 +7395,33 @@ components:
             pattern: ^\d+(\.\d{1,4})?$
           - type: 'null'
           title: Service Fee
+        supplier_pack:
+          anyOf:
+          - type: integer
+            maximum: 1000000.0
+            exclusiveMinimum: 0.0
+          - type: 'null'
+          title: Supplier Pack
+        min_order:
+          anyOf:
+          - type: integer
+            maximum: 1000000.0
+            exclusiveMinimum: 0.0
+          - type: 'null'
+          title: Min Order
+        batch_quantity:
+          anyOf:
+          - type: integer
+            maximum: 1000000.0
+            exclusiveMinimum: 0.0
+          - type: 'null'
+          title: Batch Quantity
+        outbound_shipping:
+          anyOf:
+          - type: string
+            pattern: ^\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: Outbound Shipping
         currency:
           type: string
           const: CNY
@@ -6856,7 +7455,6 @@ components:
       - supplier_id
       - sku_id
       - evidence_id
-      - dropship
       - quantity
       - unit_cost
       - region
@@ -6953,6 +7551,21 @@ components:
             type: string
           type: array
           title: Blocked
+        procurement_mode:
+          type: string
+          enum:
+          - STOCK
+          - DROPSHIP
+          title: Procurement Mode
+        next_action:
+          type: string
+          enum:
+          - RESEARCH
+          - BUY_SAMPLE
+          - START_TEST
+          - TRACK_TEST
+          - HOLD
+          title: Next Action
       additionalProperties: false
       type: object
       required:
@@ -6972,6 +7585,8 @@ components:
       - growth_factor
       - missing
       - blocked
+      - procurement_mode
+      - next_action
       title: Opportunity
     OpportunityPage:
       properties:
@@ -7184,6 +7799,39 @@ components:
       - quantity
       - price
       title: Price
+    PriceForecast:
+      properties:
+        price:
+          type: string
+          title: Price
+        scenarios:
+          items:
+            $ref: '#/components/schemas/ForecastScenario'
+          type: array
+          title: Scenarios
+      additionalProperties: false
+      type: object
+      required:
+      - price
+      - scenarios
+      title: PriceForecast
+    PriceTier:
+      properties:
+        min_quantity:
+          type: integer
+          maximum: 1000000.0
+          exclusiveMinimum: 0.0
+          title: Min Quantity
+        price:
+          type: string
+          pattern: ^\d+(\.\d{1,4})?$
+          title: Price
+      additionalProperties: false
+      type: object
+      required:
+      - min_quantity
+      - price
+      title: PriceTier
     PricesUpdate:
       properties:
         expected_version:
@@ -7256,6 +7904,14 @@ components:
           type: string
           pattern: ^\d+(\.\d{1,4})?$
           title: T
+        fee_rate:
+          anyOf:
+          - type: number
+            maximum: 1.0
+            minimum: 0.0
+          - type: string
+          title: Fee Rate
+          default: 0
         a:
           type: string
           pattern: ^\d+(\.\d{1,4})?$
@@ -7324,6 +7980,14 @@ components:
           type: string
           pattern: ^\d+(\.\d{1,4})?$
           title: T
+        fee_rate:
+          anyOf:
+          - type: number
+            maximum: 1.0
+            minimum: 0.0
+          - type: string
+          title: Fee Rate
+          default: 0
         a:
           type: string
           pattern: ^\d+(\.\d{1,4})?$
@@ -7811,16 +8475,6 @@ components:
       title: SuppliersUpdate
     Traffic:
       properties:
-        days:
-          type: integer
-          maximum: 365.0
-          minimum: 1.0
-          title: Days
-        daily_visits:
-          type: integer
-          maximum: 10000000.0
-          minimum: 0.0
-          title: Daily Visits
         low:
           anyOf:
           - type: number
@@ -7842,14 +8496,36 @@ components:
             minimum: 0.0
           - type: string
           title: High
+        days:
+          type: integer
+          maximum: 365.0
+          minimum: 1.0
+          title: Days
+        daily_visits:
+          type: integer
+          maximum: 10000000.0
+          minimum: 0.0
+          title: Daily Visits
+        denominator:
+          type: string
+          enum:
+          - VISITS
+          - CLICKS
+          title: Denominator
+          default: VISITS
+        history_experiment_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: History Experiment Id
       additionalProperties: false
       type: object
       required:
-      - days
-      - daily_visits
       - low
       - base
       - high
+      - days
+      - daily_visits
       title: Traffic
     Transaction:
       properties:

@@ -1,10 +1,10 @@
 from datetime import timedelta
 from decimal import Decimal as D
 
-from app.db import now
-from app.domain import iso, match_conflicts, money, profit, quantile
+from app.db import Entity, now
+from app.domain import decimal, iso, match_conflicts, money, profit, quantile, stock_batch
 from app.errors import BusinessError
-from app.store import audit, get, latest, persist, require_evidence, rows
+from app.store import audit, get, latest, persist, query, require_evidence, rows
 
 TRANSITIONS = {
     "DISCOVERED": {"RESEARCHING", "HOLD", "REJECTED"},
@@ -27,6 +27,30 @@ def config_for(db, workspace):
     return row
 
 
+def candidate_mode(candidate):
+    return candidate.data.get("procurement_mode", "DROPSHIP")
+
+
+def offer_mode(data):
+    return data.get("procurement_mode") or ("DROPSHIP" if data.get("dropship") else "STOCK")
+
+
+def offer_economics(data):
+    if offer_mode(data) == "DROPSHIP":
+        return decimal(data["unit_cost"]), decimal(data.get("shipping"))
+    terms = [data.get(key) for key in ("batch_quantity", "supplier_pack", "min_order", "shipping")]
+    if any(value is None for value in terms) or data["batch_quantity"] < data["min_order"]:
+        return None, None
+    _, _, cost = stock_batch(
+        data["batch_quantity"],
+        data["supplier_pack"],
+        data["quantity"],
+        decimal(data["unit_cost"]),
+        decimal(data["shipping"]),
+    )
+    return cost, decimal(data.get("outbound_shipping"))
+
+
 def validate_resource(db, workspace, kind, data, entity):
     if kind == "candidates":
         sku = get(db, workspace, data["sku_id"], "skus")
@@ -37,8 +61,12 @@ def validate_resource(db, workspace, kind, data, entity):
                 raise BusinessError("CATEGORY_CONFLICT", "关联关键词与商品类目不一致")
         primary, backup = data.get("primary_offer_id"), data.get("backup_offer_id")
         for offer_id in [primary, backup]:
-            if offer_id and get(db, workspace, offer_id, "offers").data["sku_id"] != sku.id:
-                raise BusinessError("SKU_CONFLICT", "候选与供应商报价必须属于同一SKU")
+            if offer_id:
+                offer = get(db, workspace, offer_id, "offers")
+                if offer.data["sku_id"] != sku.id:
+                    raise BusinessError("SKU_CONFLICT", "候选与供应商报价必须属于同一SKU")
+                if offer_mode(offer.data) != data["procurement_mode"]:
+                    raise BusinessError("PROCUREMENT_CONFLICT", "主备报价必须使用候选选择的采购方式")
         if primary and backup:
             a, b = get(db, workspace, primary), get(db, workspace, backup)
             if a.data["supplier_id"] == b.data["supplier_id"]:
@@ -48,7 +76,7 @@ def validate_resource(db, workspace, kind, data, entity):
                 data.get(k) != entity.data.get(k)
                 for k in ["sku_id", "primary_offer_id", "backup_offer_id", "keyword_id"]
             )
-            if changed:
+            if changed or data["procurement_mode"] != candidate_mode(entity):
                 raise BusinessError("RESEARCH_REQUIRED", "更换研究依据或货源前，请先暂停并返回研究状态", 409)
     if kind == "offers":
         sku = get(db, workspace, data["sku_id"], "skus")
@@ -161,6 +189,7 @@ def comparisons(db, workspace, sku_id, region="全国", currency="CNY"):
                 "title": listing.data["title"],
                 "price_kind": p["price_kind"],
                 "data": p,
+                "versions": {price.id: price.version, match.id: match.version, listing.id: listing.version},
             }
             if why:
                 excluded.append({**item, "reason": why})
@@ -220,6 +249,7 @@ def gate(db, workspace, candidate, stage="READY_TEST"):
             elif risk:
                 fresh(risk, code + "审核", "risks")
     offers = []
+    mode = candidate_mode(candidate)
     for field, label in [("primary_offer_id", "主供"), ("backup_offer_id", "备供")]:
         offer_id = candidate.data.get(field)
         if field == "backup_offer_id" and stage in {"READY_SAMPLE", "SAMPLE_PASSED"}:
@@ -231,7 +261,20 @@ def gate(db, workspace, candidate, stage="READY_TEST"):
         offers.append(offer)
         fresh(offer, label, "offers")
         d = offer.data
-        if not d["verified"] or not d["dropship"] or d["shipping"] is None or d["service_fee"] is None:
+        acquisition, dispatch = offer_economics(d)
+        if offer_mode(d) != mode:
+            missing.append(label + "报价的采购方式不一致")
+        elif mode == "STOCK" and (
+            not d.get("verified") or acquisition is None or dispatch is None or d["service_fee"] is None
+        ):
+            missing.append(label + "备货起订量、批次、可售套数、运费或核验信息")
+        elif mode == "DROPSHIP" and (
+            not d["verified"]
+            or not d["dropship"]
+            or d["shipping"] is None
+            or d["service_fee"] is None
+            or d.get("min_order", 1 if not d.get("procurement_mode") else None) != 1
+        ):
             missing.append(label + "代发、费用或核验信息")
         if iso(d["expires_at"]) <= now():
             missing.append(label + "有效报价")
@@ -261,16 +304,20 @@ def gate(db, workspace, candidate, stage="READY_TEST"):
                 "version": primary.version,
             }:
                 missing.append(label + "利润需按最新主供报价重算")
+            if scenario.data.get("procurement_mode", "DROPSHIP") != mode:
+                missing.append(label + "利润的采购方式已变更")
             if primary and label == "正常":
                 p = primary.data
+                acquisition, dispatch = offer_economics(p)
                 if (
-                    D(scenario.data["c"]) != D(p["unit_cost"])
-                    or p["shipping"] is None
-                    or D(scenario.data["f"]) != D(p["shipping"])
+                    acquisition is None
+                    or D(scenario.data["c"]) != D(money(acquisition))
+                    or dispatch is None
+                    or D(scenario.data["f"]) != dispatch
                 ):
                     missing.append("正常情景采购及运费与主供报价不一致")
                 if p["service_fee"] is not None and D(scenario.data["b"]) < D(p["service_fee"]):
-                    missing.append("正常情景遗漏代发服务费")
+                    missing.append("正常情景遗漏包材或供货服务费")
         if normal and stress:
             n, s = normal.data, stress.data
             adverse = D(s["p"]) <= D(n["p"]) and all(
@@ -279,6 +326,8 @@ def gate(db, workspace, candidate, stage="READY_TEST"):
             strict = D(s["p"]) < D(n["p"]) or any(
                 D(s[k]) > D(n[k]) for k in ["c", "f", "b", "t", "a", "r", "l"]
             )
+            adverse = adverse and decimal(s.get("fee_rate", 0)) >= decimal(n.get("fee_rate", 0))
+            strict = strict or decimal(s.get("fee_rate", 0)) > decimal(n.get("fee_rate", 0))
             if not adverse or not strict:
                 missing.append("压力情景必须包含至少一项不利变化且不得改善其他参数")
         if normal and D(profit(normal.data)["contribution"]) <= 0:
@@ -292,16 +341,27 @@ def gate(db, workspace, candidate, stage="READY_TEST"):
     }
 
 
-def validate_experiment(db, workspace, data):
+def validate_experiment(db, workspace, data, entity=None):
     if workspace == "public":
         raise BusinessError("HISTORICAL_ONLY", "公开历史数据用于离线研究，不能启动经营测款", 409)
-    candidate = get(db, workspace, data["candidate_id"], "candidates")
+    candidate = db.scalar(
+        query(workspace, "candidates").where(Entity.id == data["candidate_id"]).with_for_update()
+    )
+    if candidate is None:
+        raise BusinessError("NOT_FOUND", "候选不存在或不属于当前数据空间", 404)
+    if entity and (entity.data["status"] != "PLANNED" or entity.data["candidate_id"] != candidate.id):
+        raise BusinessError("EXPERIMENT_LOCKED", "已启动或结束的测款保留原方案与窗口", 409)
     result = gate(db, workspace, candidate)
     if candidate.data["state"] != "READY_TEST" or result["gate"] != "PASS":
         raise BusinessError("GATE_BLOCKED", "候选尚未完成测款准备", 409, result)
+    if data.get("forecast_id"):
+        from app.forecasts import validate_attachment
+
+        validate_attachment(db, workspace, candidate, data)
     if any(
         e.data["status"] in {"PLANNED", "RUNNING"}
         for e in rows(db, workspace, "experiments", candidate_id=candidate.id)
+        if entity is None or e.id != entity.id
     ):
         raise BusinessError("EXPERIMENT_EXISTS", "已有未结束的测款计划", 409)
 
@@ -321,6 +381,10 @@ def transition(db, workspace, candidate_id, request):
         experiment = latest(db, workspace, "experiments", candidate_id=candidate.id)
         if not experiment or experiment.data["status"] != "PLANNED":
             raise BusinessError("EXPERIMENT_REQUIRED", "请先建立测款计划", 409)
+        if experiment.data.get("forecast_id"):
+            from app.forecasts import validate_attachment
+
+            validate_attachment(db, workspace, candidate, experiment.data)
         persist(
             db,
             workspace,

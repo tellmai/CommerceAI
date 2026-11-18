@@ -11,8 +11,22 @@ from app.domain import safe_cell
 from app.errors import BusinessError
 from app.market_connections import connection_status, require_connection, write_connection
 from app.market_provider import OneBound
-from app.market_schemas import CompareInput, ConnectionInput, ManualRunInput, PromoteInput, SearchInput
-from app.market_service import make_report, promote_report, run_detail, save_manual_run, start_search
+from app.market_schemas import (
+    CompareInput,
+    ConnectionInput,
+    ManualRunInput,
+    ManualRunRevision,
+    PromoteInput,
+    SearchInput,
+)
+from app.market_service import (
+    make_report,
+    promote_report,
+    require_report_current,
+    run_detail,
+    save_manual_run,
+    start_search,
+)
 from app.schemas import Contract, EntityOut, EntityPage
 from app.store import audit, get, list_page, row_out
 
@@ -78,6 +92,17 @@ def register_market_routes(app, auth, database, workspace):
     def manual(body: ManualRunInput, ws=Depends(workspace), db=Depends(database, scope="function")):
         return row_out(save_manual_run(db, ws, body))
 
+    @app.put(
+        "/api/v1/market/runs/{run_id}/quotes",
+        dependencies=[auth],
+        response_model=EntityOut,
+        tags=["联网选品"],
+    )
+    def revise_quotes(
+        run_id: str, body: ManualRunRevision, ws=Depends(workspace), db=Depends(database, scope="function")
+    ):
+        return row_out(save_manual_run(db, ws, body, run_id))
+
     @app.get("/api/v1/market/runs", dependencies=[auth], response_model=EntityPage, tags=["联网选品"])
     def runs(
         page: int = Query(1, ge=1),
@@ -116,7 +141,13 @@ def register_market_routes(app, auth, database, workspace):
         "/api/v1/market/reports/{report_id}", dependencies=[auth], response_model=EntityOut, tags=["联网选品"]
     )
     def report(report_id: str, ws=Depends(workspace), db=Depends(database, scope="function")):
-        return row_out(get(db, ws, report_id, "market_reports"))
+        record = get(db, ws, report_id, "market_reports")
+        stale = None
+        try:
+            require_report_current(db, ws, record)
+        except BusinessError as exc:
+            stale = exc.message
+        return {**row_out(record), "data": {**record.data, "stale_reason": stale}}
 
     @app.post(
         "/api/v1/market/reports/{report_id}/candidate",

@@ -1,0 +1,18 @@
+{
+  "candidates": 1000,
+  "synthetic_records": 24000,
+  "page_size": 12,
+  "method": "PostgreSQL + authenticated FastAPI ASGI, 3 warmups then 50 sequential requests per query",
+  "first_page": {
+    "requests": 50,
+    "p50_ms": 655.17,
+    "p95_ms": 670.56,
+    "max_ms": 678.62
+  },
+  "search": {
+    "requests": 50,
+    "p50_ms": 442.19,
+    "p95_ms": 455.59,
+    "max_ms": 458.67
+  }
+}

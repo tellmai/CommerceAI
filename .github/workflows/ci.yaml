@@ -50,18 +50,48 @@ jobs:
         run: |
           curl --fail http://127.0.0.1:8080/ > /tmp/commerceai-index.html
           curl --fail http://127.0.0.1:8080/api/health
-          python3 - <<'PY'
-          import json, os, urllib.request
-          request=urllib.request.Request('http://127.0.0.1:8080/api/v1/auth/login', data=json.dumps({'password':os.environ['OWNER_PASSWORD']}).encode(),headers={'Content-Type':'application/json'})
-          result=json.load(urllib.request.urlopen(request))
-          assert result['csrf']
+          cat > /tmp/commerceai-verify-forecast.py <<'PY'
+          import http.cookiejar
+          import json
+          import os
+          from pathlib import Path
+          import sys
+          import urllib.request
+
+          operation = sys.argv[1]
+          base = 'http://127.0.0.1:8080' if operation == 'save' else 'http://127.0.0.1:8081'
+          client = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
+          headers = {'Content-Type': 'application/json', 'X-Workspace': 'demo'}
+
+          def call(path, value=None):
+              body = json.dumps(value).encode() if value is not None else None
+              request = urllib.request.Request(base + '/api/v1' + path, data=body, headers=headers)
+              with client.open(request, timeout=15) as response:
+                  return json.load(response)
+
+          headers['X-CSRF-Token'] = call('/auth/login', {'password': os.environ['OWNER_PASSWORD']})['csrf']
+          fixture = Path('/tmp/commerceai-forecast.json')
+          if operation == 'save':
+              saved = call('/forecasts', {'name': '隔离恢复验证', 'inputs': {
+                  'price': '12.90', 'target_margin': 0.20, 'procurement_mode': 'STOCK', 'stock_units': 7,
+                  'traffic': {'days': 1, 'daily_visits': 100, 'low': 0.01, 'base': 0.10, 'high': 0.20},
+              }})
+              assert saved['data']['result']['scenarios'][1]['orders'] == 7
+              fixture.write_text(json.dumps(saved))
+          else:
+              original = json.loads(fixture.read_text())
+              restored = call('/forecasts/' + original['id'])
+              assert restored['data']['input_hash'] == original['data']['input_hash']
+              assert call('/forecasts/' + original['id'] + '/replay') == original['data']['result']
           PY
+          python3 /tmp/commerceai-verify-forecast.py save
           bash scripts/backup-compose.sh
           backup_dir=$(find .local/backups -maxdepth 1 -type d -name 'compose-*' | sort | tail -1)
           bash scripts/restore-compose.sh "$backup_dir"
           curl --fail --retry 20 --retry-delay 3 --retry-all-errors http://127.0.0.1:8081/api/health
           docker compose exec -T db psql -U commerceai -d commerceai -Atc 'select count(*) from login_session;'
           docker compose -p commerceai-restorecheck exec -T db psql -U commerceai -d commerceai -Atc 'select count(*) from entity;'
+          python3 /tmp/commerceai-verify-forecast.py restore
       - name: Container logs
         if: failure()
         run: docker compose logs --tail=100

@@ -122,6 +122,13 @@ test('record public platform quotes and calculate a free comparison',async({page
       ['每包装件数','2'],['材质','PBT'],['尺寸或型号规格','180mm'],['报价依据','浏览器验收合成报价，两支装'],
     ])await quote.getByLabel(label,{exact:true}).fill(value)
   }
+  await dialog.getByRole('button',{name:'添加零售报价',exact:true}).click()
+  const other=dialog.getByRole('region',{name:'淘宝报价',exact:true}).last()
+  for(const [label,value] of [
+    ['商品标题','另一家淘宝合成牙刷'],['原商品链接','https://item.taobao.com/item.htm?id=456'],
+    ['每包装报价（元）','14.9'],['每包装件数','2'],['材质','PBT'],['尺寸或型号规格','180mm'],
+    ['报价依据','浏览器验收合成报价，另一零售卖家'],
+  ])await other.getByLabel(label,{exact:true}).fill(value)
   await dialog.getByRole('button',{name:'保存报价并开始比较',exact:true}).click()
   await expect(dialog).toBeHidden()
   await page.getByRole('button',{name:'分析所选产品并保存报告',exact:true}).click()
@@ -129,6 +136,10 @@ test('record public platform quotes and calculate a free comparison',async({page
   await expect(report).toContainText('人工录入')
   await expect(report).toContainText('¥10.90')
   await expect(report).toContainText('费用不完整')
+  await page.getByRole('button',{name:'更新本组报价',exact:true}).click()
+  const update=page.getByRole('dialog',{name:'更新平台报价',exact:true})
+  await expect(update.getByRole('region',{name:'淘宝报价',exact:true})).toHaveCount(2)
+  await page.keyboard.press('Escape')
 })
 
 test('hot product page gives evidence and three priced revenue scenarios',async({page})=>{
@@ -147,3 +158,36 @@ test('hot product page gives evidence and three priced revenue scenarios',async(
   await expect(base).toContainText('¥11976.00')
   await expect(base).toContainText('¥5507.52')
 })
+
+for(const mode of ['小批备货','一件代发']){
+  test(`${mode}预测支持履约约束和方案历史`,async({page})=>{
+    await page.getByRole('link',{name:'爆款推荐',exact:true}).click()
+    await page.getByRole('button',{name:'载入演练假设',exact:true}).click()
+    await page.getByLabel('采购方式',{exact:true}).press('ArrowDown')
+    await page.getByRole('option',{name:mode,exact:true}).click()
+    if(mode==='小批备货'){
+      await page.getByLabel('可售库存套数',{exact:true}).fill('100')
+      await page.getByLabel('首批货款与进货运费',{exact:true}).fill('1500')
+    }else{
+      await page.getByLabel('核验后的日代发上限',{exact:true}).fill('3')
+      await page.getByLabel('回款滞后天数',{exact:true}).fill('7')
+    }
+    await page.getByLabel('投放现金预算',{exact:true}).fill('200')
+    await page.getByLabel('退款准备金',{exact:true}).fill('50')
+    await page.getByRole('button',{name:'计算定价与预测',exact:true}).click()
+    const result=page.getByTestId('forecast-result')
+    await expect(result).toContainText(mode==='小批备货'?'100 / 240':'90 / 240')
+    await expect(result).toContainText(mode==='小批备货'?'¥1750.00':'¥670.00')
+    const name=mode+'浏览器验收 '+Date.now()
+    await page.getByRole('button',{name:'保存预测方案',exact:true}).click()
+    const modal=page.getByRole('dialog',{name:'保存预测方案',exact:true})
+    await modal.getByLabel('方案名称',{exact:true}).fill(name)
+    await modal.getByRole('button',{name:'保存方案',exact:true}).click()
+    await expect(modal).toBeHidden()
+    const row=page.getByRole('row').filter({hasText:name})
+    await expect(row).toContainText('版本 1')
+    await row.getByRole('button',{name:'查看方案',exact:true}).click()
+    await expect(page.getByLabel('计划成交单价',{exact:true})).toHaveValue('49.90')
+    await expect(result).toContainText(mode==='小批备货'?'100 / 240':'90 / 240')
+  })
+}

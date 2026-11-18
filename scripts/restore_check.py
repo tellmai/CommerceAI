@@ -17,6 +17,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("archive", type=Path)
     parser.add_argument("--database", default="commerceai_restorecheck")
+    parser.add_argument("--report", type=Path, default=ROOT / "docs" / "restore-check.json")
     args = parser.parse_args()
     if (
         not args.database.endswith("_restorecheck")
@@ -93,9 +94,7 @@ def main():
         "restored_storage": str(directory / "storage"),
         "database_checksum_verified": True,
     }
-    (ROOT / "docs" / "restore-check.json").write_text(
-        json.dumps(result, ensure_ascii=False, indent=2) + "\n"
-    )
+    args.report.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n")
     print(json.dumps(result, ensure_ascii=False))
     restored.dispose()
 

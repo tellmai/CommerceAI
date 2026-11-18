@@ -122,4 +122,18 @@ CREATE UNIQUE INDEX IF NOT EXISTS single_confirmed_match ON entity (workspace, (
 
 UPDATE alembic_version SET version_num='0002' WHERE alembic_version.version_num = '0001';
 
+-- Running upgrade 0002 -> 0003
+
+CREATE INDEX entity_candidate_id_lookup ON entity (workspace, kind, (data->>'candidate_id'), updated_at DESC, id) WHERE data->>'candidate_id' IS NOT NULL;
+
+CREATE INDEX entity_sku_id_lookup ON entity (workspace, kind, (data->>'sku_id'), updated_at DESC, id) WHERE data->>'sku_id' IS NOT NULL;
+
+CREATE INDEX entity_listing_id_lookup ON entity (workspace, kind, (data->>'listing_id'), updated_at DESC, id) WHERE data->>'listing_id' IS NOT NULL;
+
+CREATE INDEX entity_offer_id_lookup ON entity (workspace, kind, (data->>'offer_id'), updated_at DESC, id) WHERE data->>'offer_id' IS NOT NULL;
+
+CREATE INDEX entity_keyword_window ON entity (workspace, (data->>'source_id'), (data->>'window_end'), created_at DESC) WHERE kind = 'keywords';
+
+UPDATE alembic_version SET version_num='0003' WHERE alembic_version.version_num = '0002';
+
 COMMIT;
