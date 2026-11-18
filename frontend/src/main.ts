@@ -8,6 +8,7 @@ import './style.css'
 const router = createRouter({history:createWebHashHistory(),routes:[
   {path:'/', component:()=>import('./views/Dashboard.vue')}, {path:'/data', component:()=>import('./views/DataCenter.vue')}, {path:'/profit', component:()=>import('./views/ProfitView.vue')},
   {path:'/discover', component:()=>import('./views/Discovery.vue')},
+  {path:'/opportunities', component:()=>import('./views/Opportunities.vue')},
   {path:'/settings', component:()=>import('./views/Settings.vue')}, {path:'/records/:kind', component:()=>import('./views/ResourceView.vue')},
 ]})
 createApp(App).use(router).use(ElementPlus,{locale:zhCn}).mount('#app')

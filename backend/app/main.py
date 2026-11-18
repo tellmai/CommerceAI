@@ -24,6 +24,15 @@ from app.domain import fingerprint, money, profit, safe_cell
 from app.errors import BusinessError
 from app.ingestion import IMPORTABLE, preview
 from app.market_routes import register_market_routes
+from app.opportunities import (
+    ForecastBaseline,
+    ForecastInput,
+    ForecastResult,
+    OpportunityPage,
+    baseline,
+    forecast,
+    opportunities,
+)
 from app.schemas import (
     CONTRACTS,
     Cashflow,
@@ -254,6 +263,53 @@ def get_dashboard(
 @app.post("/api/v1/profit/calculate", dependencies=[Auth])
 def calculate_profit(body: ProfitInput):
     return profit(body.model_dump(mode="json"))
+
+
+@app.get("/api/v1/opportunities", response_model=OpportunityPage, dependencies=[Auth], tags=["爆款推荐"])
+def recommended_products(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=50),
+    search: str = Query("", max_length=100),
+    ws=Depends(workspace),
+    db=Depends(database, scope="function"),
+):
+    return opportunities(db, ws, page, page_size, search)
+
+
+@app.get(
+    "/api/v1/opportunities/baseline",
+    response_model=ForecastBaseline,
+    dependencies=[Auth],
+    tags=["爆款推荐"],
+)
+def forecast_baseline(
+    candidate_id: str | None = None,
+    report_id: str | None = None,
+    ws=Depends(workspace),
+    db=Depends(database, scope="function"),
+):
+    if bool(candidate_id) == bool(report_id):
+        raise BusinessError("INVALID_FORECAST_SOURCE", "请选择一个候选或一个比价报告")
+    return baseline(db, ws, candidate_id, report_id)
+
+
+@app.post(
+    "/api/v1/opportunities/forecast",
+    response_model=ForecastResult,
+    dependencies=[Auth],
+    tags=["爆款推荐"],
+)
+def calculate_forecast(body: ForecastInput, ws=Depends(workspace), db=Depends(database, scope="function")):
+    if ws == "public":
+        raise BusinessError("SPACE_MODE_CONFLICT", "请在模拟演示或真实经营空间测算当前商品", 409)
+    source = (
+        baseline(db, ws, body.candidate_id, body.report_id) if body.candidate_id or body.report_id else None
+    )
+    return (
+        forecast(body, source.reference_price, source.reference_count, source.notices)
+        if source
+        else forecast(body)
+    )
 
 
 @app.post("/api/v1/profit/cashflow", dependencies=[Auth])

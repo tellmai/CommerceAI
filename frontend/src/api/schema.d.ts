@@ -123,6 +123,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/opportunities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Recommended Products */
+        get: operations["recommended_products_api_v1_opportunities_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/opportunities/baseline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Forecast Baseline */
+        get: operations["forecast_baseline_api_v1_opportunities_baseline_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/opportunities/forecast": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Calculate Forecast */
+        post: operations["calculate_forecast_api_v1_opportunities_forecast_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/profit/cashflow": {
         parameters: {
             query?: never;
@@ -1744,6 +1795,129 @@ export interface components {
             expected_version: number;
             payload: components["schemas"]["Experiment"];
         };
+        /** ForecastBaseline */
+        ForecastBaseline: {
+            /** Name */
+            name: string;
+            inputs: components["schemas"]["ForecastCosts"];
+            /** Price */
+            price: string | null;
+            /** Reference Price */
+            reference_price: string | null;
+            /** Reference Count */
+            reference_count: number;
+            /** Source */
+            source: string;
+            /** Source Id */
+            source_id: string | null;
+            /** Notices */
+            notices: string[];
+        };
+        /** ForecastCosts */
+        ForecastCosts: {
+            /** C */
+            c?: string | null;
+            /** F */
+            f?: string | null;
+            /** B */
+            b?: string | null;
+            /** T */
+            t?: string | null;
+            /** A */
+            a?: string | null;
+            /** R */
+            r?: number | null;
+            /** L */
+            l?: string | null;
+        };
+        /** ForecastInput */
+        ForecastInput: {
+            /** C */
+            c?: string | null;
+            /** F */
+            f?: string | null;
+            /** B */
+            b?: string | null;
+            /** T */
+            t?: string | null;
+            /** A */
+            a?: string | null;
+            /** R */
+            r?: number | string | null;
+            /** L */
+            l?: string | null;
+            /** Price */
+            price?: string | null;
+            /** Target Margin */
+            target_margin: number | string;
+            /** Fixed Cost */
+            fixed_cost?: string | null;
+            traffic?: components["schemas"]["Traffic"] | null;
+            /** Candidate Id */
+            candidate_id?: string | null;
+            /** Report Id */
+            report_id?: string | null;
+        };
+        /** ForecastResult */
+        ForecastResult: {
+            /** Effective Price */
+            effective_price: string | null;
+            /** Break Even Price */
+            break_even_price: string | null;
+            /** Minimum Target Price */
+            minimum_target_price: string | null;
+            /** Suggested Price */
+            suggested_price: string | null;
+            /** Max Purchase Cost */
+            max_purchase_cost: string | null;
+            /** Max Cac */
+            max_cac: string | null;
+            /** Unit Variable Cost */
+            unit_variable_cost: string | null;
+            /** Unit Contribution */
+            unit_contribution: string | null;
+            /** Unit Contribution Rate */
+            unit_contribution_rate: number | null;
+            /** Break Even Orders */
+            break_even_orders: number | null;
+            /** Reference Price */
+            reference_price: string | null;
+            /** Reference Count */
+            reference_count: number;
+            /** Missing */
+            missing: string[];
+            /** Notices */
+            notices: string[];
+            /**
+             * Pricing Status
+             * @enum {string}
+             */
+            pricing_status: "INCOMPLETE" | "UNATTAINABLE" | "COST_ONLY" | "ABOVE_REFERENCE" | "WITHIN_REFERENCE";
+            /** Scenarios */
+            scenarios: components["schemas"]["ForecastScenario"][];
+        };
+        /** ForecastScenario */
+        ForecastScenario: {
+            /**
+             * Name
+             * @enum {string}
+             */
+            name: "LOW" | "BASE" | "HIGH";
+            /** Conversion */
+            conversion: number;
+            /** Orders */
+            orders: number;
+            /** Paid Revenue */
+            paid_revenue: string;
+            /** Retained Revenue */
+            retained_revenue: string | null;
+            /** Variable Cost */
+            variable_cost: string | null;
+            /** Contribution */
+            contribution: string | null;
+            /** After Fixed Cost */
+            after_fixed_cost: string | null;
+        };
         /** Funnel */
         Funnel: {
             /** Experiment Id */
@@ -2006,6 +2180,55 @@ export interface components {
             /** Expected Version */
             expected_version: number;
             payload: components["schemas"]["Offer"];
+        };
+        /** Opportunity */
+        Opportunity: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Category */
+            category: string;
+            /** State */
+            state: string;
+            /** Keyword */
+            keyword: string | null;
+            /**
+             * Level
+             * @enum {string}
+             */
+            level: "PRIORITY" | "TEST" | "VERIFY" | "BLOCKED";
+            /** Grade */
+            grade: string | null;
+            /** Score */
+            score: number | null;
+            /** Score Low */
+            score_low: number | null;
+            /** Score High */
+            score_high: number | null;
+            /** Coverage */
+            coverage: number | null;
+            /** Score Stale */
+            score_stale: boolean;
+            /** Demand Factor */
+            demand_factor: number | null;
+            /** Growth Factor */
+            growth_factor: number | null;
+            /** Missing */
+            missing: string[];
+            /** Blocked */
+            blocked: string[];
+        };
+        /** OpportunityPage */
+        OpportunityPage: {
+            /** Items */
+            items: components["schemas"]["Opportunity"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
         };
         /** Order */
         Order: {
@@ -2415,6 +2638,19 @@ export interface components {
             expected_version: number;
             payload: components["schemas"]["Supplier"];
         };
+        /** Traffic */
+        Traffic: {
+            /** Days */
+            days: number;
+            /** Daily Visits */
+            daily_visits: number;
+            /** Low */
+            low: number | string;
+            /** Base */
+            base: number | string;
+            /** High */
+            high: number | string;
+        };
         /** Transaction */
         Transaction: {
             /** Source Id */
@@ -2663,6 +2899,110 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    recommended_products_api_v1_opportunities_get: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+                search?: string;
+            };
+            header?: {
+                "x-workspace"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpportunityPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    forecast_baseline_api_v1_opportunities_baseline_get: {
+        parameters: {
+            query?: {
+                candidate_id?: string | null;
+                report_id?: string | null;
+            };
+            header?: {
+                "x-workspace"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ForecastBaseline"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    calculate_forecast_api_v1_opportunities_forecast_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ForecastInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ForecastResult"];
                 };
             };
             /** @description Validation Error */

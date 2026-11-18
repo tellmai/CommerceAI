@@ -261,7 +261,10 @@ onUnmounted(() => { disposed = true; if (timer) clearInterval(timer) })
   <section v-if="report" class="panel mt24 market-report" data-testid="market-report">
     <div class="panel-heading"><div><p class="eyebrow">已保存的分析快照 · {{ new Date(report.data.created_at).toLocaleString('zh-CN') }}</p><h3>{{ report.data.query }} · 选品分析报告</h3>
       <p class="muted">{{ marketModeNames[report.data.mode] }} · {{ report.data.supply.title }} → {{ platformNames[report.data.retail.platform] }} · {{ report.data.retail.title }}</p></div>
-      <el-button @click="download('/market/reports/' + report.id + '/export', '产品选品分析.csv')">导出报告</el-button>
+      <div class="forecast-buttons">
+        <el-button @click="router.push({path:'/opportunities', query:{report:report.id}})">继续定价预测</el-button>
+        <el-button @click="download('/market/reports/' + report.id + '/export', '产品选品分析.csv')">导出报告</el-button>
+      </div>
     </div>
     <el-alert :title="recommendationNames[report.data.result.recommendation]" :type="report.data.result.blocked.length ? 'error' : 'info'" :closable="false" show-icon class="mb16"
       :description="report.data.mode === 'DEMO' ? '全部数据为模拟，不能据此采购。' : '结论针对当前输入和报价；不保证销量或实际利润。'" />

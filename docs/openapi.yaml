@@ -149,6 +149,141 @@ paths:
       security:
       - sessionCookie: []
         csrfHeader: []
+  /api/v1/opportunities:
+    get:
+      tags:
+      - 爆款推荐
+      summary: Recommended Products
+      operationId: recommended_products_api_v1_opportunities_get
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+          title: Page
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 50
+          minimum: 1
+          default: 20
+          title: Page Size
+      - name: search
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 100
+          default: ''
+          title: Search
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OpportunityPage'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+  /api/v1/opportunities/baseline:
+    get:
+      tags:
+      - 爆款推荐
+      summary: Forecast Baseline
+      operationId: forecast_baseline_api_v1_opportunities_baseline_get
+      parameters:
+      - name: candidate_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Candidate Id
+      - name: report_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Report Id
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForecastBaseline'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+  /api/v1/opportunities/forecast:
+    post:
+      tags:
+      - 爆款推荐
+      summary: Calculate Forecast
+      operationId: calculate_forecast_api_v1_opportunities_forecast_post
+      parameters:
+      - name: x-workspace
+        in: header
+        required: false
+        schema:
+          type: string
+          default: demo
+          title: X-Workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForecastInput'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForecastResult'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - sessionCookie: []
+        csrfHeader: []
   /api/v1/profit/cashflow:
     post:
       summary: Calculate Cashflow
@@ -5889,6 +6024,337 @@ components:
       - expected_version
       - payload
       title: ExperimentsUpdate
+    ForecastBaseline:
+      properties:
+        name:
+          type: string
+          title: Name
+        inputs:
+          $ref: '#/components/schemas/ForecastCosts'
+        price:
+          anyOf:
+          - type: string
+            pattern: ^\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: Price
+        reference_price:
+          anyOf:
+          - type: string
+            pattern: ^\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: Reference Price
+        reference_count:
+          type: integer
+          title: Reference Count
+        source:
+          type: string
+          title: Source
+        source_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Source Id
+        notices:
+          items:
+            type: string
+          type: array
+          title: Notices
+      additionalProperties: false
+      type: object
+      required:
+      - name
+      - inputs
+      - price
+      - reference_price
+      - reference_count
+      - source
+      - source_id
+      - notices
+      title: ForecastBaseline
+    ForecastCosts:
+      properties:
+        c:
+          anyOf:
+          - type: string
+            pattern: ^\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: C
+        f:
+          anyOf:
+          - type: string
+            pattern: ^\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: F
+        b:
+          anyOf:
+          - type: string
+            pattern: ^\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: B
+        t:
+          anyOf:
+          - type: string
+            pattern: ^\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: T
+        a:
+          anyOf:
+          - type: string
+            pattern: ^\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: A
+        r:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: R
+        l:
+          anyOf:
+          - type: string
+            pattern: ^\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: L
+      additionalProperties: false
+      type: object
+      title: ForecastCosts
+    ForecastInput:
+      properties:
+        c:
+          anyOf:
+          - type: string
+            pattern: ^\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: C
+        f:
+          anyOf:
+          - type: string
+            pattern: ^\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: F
+        b:
+          anyOf:
+          - type: string
+            pattern: ^\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: B
+        t:
+          anyOf:
+          - type: string
+            pattern: ^\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: T
+        a:
+          anyOf:
+          - type: string
+            pattern: ^\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: A
+        r:
+          anyOf:
+          - type: number
+            maximum: 1.0
+            minimum: 0.0
+          - type: string
+          - type: 'null'
+          title: R
+        l:
+          anyOf:
+          - type: string
+            pattern: ^\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: L
+        price:
+          anyOf:
+          - type: string
+            pattern: ^\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: Price
+        target_margin:
+          anyOf:
+          - type: number
+            maximum: 1.0
+            minimum: 0.0
+          - type: string
+          title: Target Margin
+        fixed_cost:
+          anyOf:
+          - type: string
+            pattern: ^\d+(\.\d{1,4})?$
+          - type: 'null'
+          title: Fixed Cost
+        traffic:
+          anyOf:
+          - $ref: '#/components/schemas/Traffic'
+          - type: 'null'
+        candidate_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Candidate Id
+        report_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Report Id
+      additionalProperties: false
+      type: object
+      required:
+      - target_margin
+      title: ForecastInput
+    ForecastResult:
+      properties:
+        effective_price:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Effective Price
+        break_even_price:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Break Even Price
+        minimum_target_price:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Minimum Target Price
+        suggested_price:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Suggested Price
+        max_purchase_cost:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Max Purchase Cost
+        max_cac:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Max Cac
+        unit_variable_cost:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Unit Variable Cost
+        unit_contribution:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Unit Contribution
+        unit_contribution_rate:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Unit Contribution Rate
+        break_even_orders:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Break Even Orders
+        reference_price:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Reference Price
+        reference_count:
+          type: integer
+          title: Reference Count
+        missing:
+          items:
+            type: string
+          type: array
+          title: Missing
+        notices:
+          items:
+            type: string
+          type: array
+          title: Notices
+        pricing_status:
+          type: string
+          enum:
+          - INCOMPLETE
+          - UNATTAINABLE
+          - COST_ONLY
+          - ABOVE_REFERENCE
+          - WITHIN_REFERENCE
+          title: Pricing Status
+        scenarios:
+          items:
+            $ref: '#/components/schemas/ForecastScenario'
+          type: array
+          title: Scenarios
+      additionalProperties: false
+      type: object
+      required:
+      - effective_price
+      - break_even_price
+      - minimum_target_price
+      - suggested_price
+      - max_purchase_cost
+      - max_cac
+      - unit_variable_cost
+      - unit_contribution
+      - unit_contribution_rate
+      - break_even_orders
+      - reference_price
+      - reference_count
+      - missing
+      - notices
+      - pricing_status
+      - scenarios
+      title: ForecastResult
+    ForecastScenario:
+      properties:
+        name:
+          type: string
+          enum:
+          - LOW
+          - BASE
+          - HIGH
+          title: Name
+        conversion:
+          type: number
+          title: Conversion
+        orders:
+          type: integer
+          title: Orders
+        paid_revenue:
+          type: string
+          title: Paid Revenue
+        retained_revenue:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Retained Revenue
+        variable_cost:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Variable Cost
+        contribution:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Contribution
+        after_fixed_cost:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: After Fixed Cost
+      additionalProperties: false
+      type: object
+      required:
+      - name
+      - conversion
+      - orders
+      - paid_revenue
+      - retained_revenue
+      - variable_cost
+      - contribution
+      - after_fixed_cost
+      title: ForecastScenario
     Funnel:
       properties:
         experiment_id:
@@ -6412,6 +6878,125 @@ components:
       - expected_version
       - payload
       title: OffersUpdate
+    Opportunity:
+      properties:
+        id:
+          type: string
+          title: Id
+        name:
+          type: string
+          title: Name
+        category:
+          type: string
+          title: Category
+        state:
+          type: string
+          title: State
+        keyword:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Keyword
+        level:
+          type: string
+          enum:
+          - PRIORITY
+          - TEST
+          - VERIFY
+          - BLOCKED
+          title: Level
+        grade:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Grade
+        score:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Score
+        score_low:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Score Low
+        score_high:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Score High
+        coverage:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Coverage
+        score_stale:
+          type: boolean
+          title: Score Stale
+        demand_factor:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Demand Factor
+        growth_factor:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Growth Factor
+        missing:
+          items:
+            type: string
+          type: array
+          title: Missing
+        blocked:
+          items:
+            type: string
+          type: array
+          title: Blocked
+      additionalProperties: false
+      type: object
+      required:
+      - id
+      - name
+      - category
+      - state
+      - keyword
+      - level
+      - grade
+      - score
+      - score_low
+      - score_high
+      - coverage
+      - score_stale
+      - demand_factor
+      - growth_factor
+      - missing
+      - blocked
+      title: Opportunity
+    OpportunityPage:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/Opportunity'
+          type: array
+          title: Items
+        total:
+          type: integer
+          title: Total
+        page:
+          type: integer
+          title: Page
+        page_size:
+          type: integer
+          title: Page Size
+      additionalProperties: false
+      type: object
+      required:
+      - items
+      - total
+      - page
+      - page_size
+      title: OpportunityPage
     Order:
       properties:
         source_id:
@@ -7224,6 +7809,48 @@ components:
       - expected_version
       - payload
       title: SuppliersUpdate
+    Traffic:
+      properties:
+        days:
+          type: integer
+          maximum: 365.0
+          minimum: 1.0
+          title: Days
+        daily_visits:
+          type: integer
+          maximum: 10000000.0
+          minimum: 0.0
+          title: Daily Visits
+        low:
+          anyOf:
+          - type: number
+            maximum: 1.0
+            minimum: 0.0
+          - type: string
+          title: Low
+        base:
+          anyOf:
+          - type: number
+            maximum: 1.0
+            minimum: 0.0
+          - type: string
+          title: Base
+        high:
+          anyOf:
+          - type: number
+            maximum: 1.0
+            minimum: 0.0
+          - type: string
+          title: High
+      additionalProperties: false
+      type: object
+      required:
+      - days
+      - daily_visits
+      - low
+      - base
+      - high
+      title: Traffic
     Transaction:
       properties:
         source_id:
